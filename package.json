@@ -2,6 +2,7 @@
   "name": "kipi-web",
   "version": "0.0.1",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "kipi as a 100% client-side, zero-data web app (spine). See ../docs/17-client-side-architecture.md",
   "scripts": {

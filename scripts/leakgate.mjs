@@ -231,6 +231,13 @@ export const FEEDBACK_NAV_HOSTS = new Set(["github.com"]);
 function isFeedbackModule(file) {
   return file.split(/[\\/]/).slice(-1)[0] === "feedback.ts";
 }
+// gh-stars (founder 2026-07-09): src/github-stars.ts carries a github.com REPO-link anchor (the star
+// button) — a navigation target the user clicks, NOT a fetch (the star COUNT fetch goes to the
+// allowlisted api.github.com). Same category + same host set as the feedback.ts anchor; scoped to this one
+// file, so any OTHER src file naming github.com still trips. Proven by tests/leakgate.test.ts.
+function isGithubStarsModule(file) {
+  return file.split(/[\\/]/).slice(-1)[0] === "github-stars.ts";
+}
 
 // en-enrich (sf-enrich build): the provider cards render a "docs ↗" ANCHOR per provider to that
 // provider's API-docs page — a NAVIGATION target the user clicks, NOT a browser fetch. Most provider
@@ -327,7 +334,7 @@ export function findOffenders(file, text) {
     if (host === "www.w3.org" && NAMESPACE_URIS.some((ns) => scanned.startsWith(ns, m.index))) continue;
     if (vendor && VENDOR_DOC_HOSTS.has(host)) continue; // dist-only benign vendored doc-URL (D7)
     if ((isProxyRegistry(file) || vendor) && PROXY_TARGET_HOSTS.has(host)) continue; // pb-proxy: worker-fetched ?u= target, not connect-src (proxy.ts src + its dist bundle; any OTHER src file naming them still trips)
-    if ((isFeedbackModule(file) || vendor) && FEEDBACK_NAV_HOSTS.has(host)) continue; // rel-feedback: a github.com anchor (navigation), not a fetch origin (feedback.ts src + its dist bundle; any OTHER src file naming it still trips)
+    if ((isFeedbackModule(file) || isGithubStarsModule(file) || vendor) && FEEDBACK_NAV_HOSTS.has(host)) continue; // rel-feedback + gh-stars: a github.com anchor (navigation), not a fetch origin (feedback.ts / github-stars.ts src + their dist bundle; any OTHER src file naming it still trips)
     if ((isEnrichRegistry(file) || vendor) && ENRICH_DOC_HOSTS.has(host)) continue; // en-enrich: a provider docs↗ anchor (navigation), not a fetch origin (enrich.ts src + its dist bundle; any OTHER src file naming it still trips)
     if ((isPivotModule(file) || vendor) && PIVOT_LINK_HOSTS.has(host)) continue; // pivot-links: an osint pivot <a> href (navigation), not a fetch origin (pivots.ts src + its dist bundle; any OTHER src file naming them still trips)
     if ((isFaviconModule(file) || vendor) && FAVICON_FETCH_HOSTS.has(host)) continue; // favicon: a REAL img-src egress to Google (founder decision 2026-06-24), in CSP img-src not connect-src (favicon.ts src + its dist bundle; any OTHER src file naming it still trips)

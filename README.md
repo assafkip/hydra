@@ -31,4 +31,4 @@ Every OSINT lookup goes directly from your browser to that provider — so the p
 
 ## License
 
-All rights reserved (no license granted yet). If you want to use or contribute, open an issue.
+[MIT](./LICENSE) © Assaf Kipnis

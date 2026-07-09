@@ -134,7 +134,7 @@ import { connId, type SemanticRelation } from "./entity/relations.js";
 import type { ConsolidateSuggestion, TypingSuggestion } from "./entity/consolidate.js";
 import { clusterFor, type Cluster } from "./entity/clusters.js";
 import { SupabaseAuth, AuthError } from "./auth/supabase.js";
-import { loadGithubStars } from "./github-stars.js";
+import { loadGithubStars, githubStarAnchor } from "./github-stars.js";
 import { Identity } from "./auth/identity.js";
 import { fileToText } from "./ingest/files.js";
 import { extractEntities } from "./ingest/extract.js"; // clu-chat-intake: count entities for the completeness check
@@ -1426,9 +1426,16 @@ function renderAuth(hasVault: boolean): void {
   // log in. Once the user toggles or advances (confirm/forgot/no-vault), that mode is preserved.
   if (!hasVault && authMode === "login") authMode = "signup";
   if (hasVault && authMode === "signup") authMode = "login";
+  // gh-stars: social proof BEFORE login too — a star button above the auth card (the app top strip with
+  // its own button only shows after login). loadGithubStars fills every .js-gh-stars, so this one and the
+  // top-strip one both get the count.
+  const ghBar = el(`<div class="flex justify-center pt-6 pb-2"></div>`);
+  ghBar.appendChild(githubStarAnchor());
+  root().appendChild(ghBar);
   const host = el(`<div id="auth-host"></div>`);
   root().appendChild(host);
   paintAuth(host);
+  void loadGithubStars(); // fill the star count once the pre-login button is in the DOM
 }
 
 function paintAuth(host: HTMLElement): void {
