@@ -1,0 +1,8 @@
+Investigation intake — behavioral parity fixture.
+
+The operator runs acmecorp-fixture.io and ships payloads from 203.0.113.45.
+A second domain badactor-fixture.net resolves to that same host 203.0.113.45.
+Payments route to the wallet 0x52908400098527886E0F7030069857D2E4169EE7.
+The handler abuse@acmecorp-fixture.io receives the abuse reports for the case.
+
+All of these entities appear in this one report, so they co-occur.

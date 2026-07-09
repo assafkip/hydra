@@ -1,0 +1,22 @@
+{
+  "_doc": "GENERATED from the ORIGINAL pipeline (extract_all + infer_relationships) by behavioral_baseline_gen.py. Do not hand-edit.",
+  "fixture": "behavioral-fixture.txt",
+  "entities": [
+    "0x52908400098527886e0f7030069857d2e4169ee7",
+    "203.0.113.45",
+    "abuse@acmecorp-fixture.io",
+    "acmecorp-fixture.io",
+    "badactor-fixture.net"
+  ],
+  "edges": [
+    "0x52908400098527886e0f7030069857d2e4169ee7::203.0.113.45",
+    "0x52908400098527886e0f7030069857d2e4169ee7::abuse@acmecorp-fixture.io",
+    "0x52908400098527886e0f7030069857d2e4169ee7::acmecorp-fixture.io",
+    "0x52908400098527886e0f7030069857d2e4169ee7::badactor-fixture.net",
+    "203.0.113.45::abuse@acmecorp-fixture.io",
+    "203.0.113.45::acmecorp-fixture.io",
+    "203.0.113.45::badactor-fixture.net",
+    "abuse@acmecorp-fixture.io::badactor-fixture.net",
+    "acmecorp-fixture.io::badactor-fixture.net"
+  ]
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+# Vite reads these at build time — never commit real keys. BYO-key: the app takes
+# keys at runtime (encrypted vault), so nothing here should ever hold a secret.
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+*.log
+.DS_Store
+.vercel
+public/tesseract/

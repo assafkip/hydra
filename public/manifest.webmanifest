@@ -1,0 +1,14 @@
+{
+  "name": "Hydra",
+  "short_name": "Hydra",
+  "description": "A 100% client-side OSINT investigation workbench. Your cases, keys, and findings stay encrypted on your own device.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF9",
+  "theme_color": "#0F766E",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

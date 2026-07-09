@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Egress wall (defense-in-depth copy of the response-header CSP). connect-src is the
+      enumerated allowlist: self + Anthropic + the OSINT providers. script-src/style-src/
+      font-src 'self': Tailwind is compiled at build time and the fonts + Alpine CSP build are
+      BUNDLED (no unpkg/jsdelivr/cdn.tailwindcss.com/Google Fonts — leak F1/F2). script-src has
+      no general unsafe-eval; wasm-unsafe-eval is scoped to bundled MuPDF WASM. style-src-attr
+      is temporarily allowed for app-owned dynamic sizing/display.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: https://t0.gstatic.com; font-src 'self'; connect-src 'self' https://api.anthropic.com https://dns.google https://cloudflare-dns.com https://rdap.org https://rdap.verisign.com https://crt.sh https://mempool.space https://api.trongrid.io https://solana-rpc.publicnode.com https://ethereum-rpc.publicnode.com https://toncenter.com https://api.ensideas.com https://api.shodan.io https://search.censys.io https://otx.alienvault.com https://api.etherscan.io https://urlscan.io https://ipinfo.io https://api.perplexity.ai https://r.jina.ai https://api.tavily.com https://yvermtklysygaeetxcyb.supabase.co https://api.github.com https://keybase.io https://gravatar.com https://internetdb.shodan.io https://stat.ripe.net https://ip.guide https://ipwho.is https://api.stopforumspam.org https://isc.sans.edu https://api.certspotter.com https://blockstream.info https://api.blockcypher.com https://eth.blockscout.com https://gitlab.com https://hacker-news.firebaseio.com https://registry.npmjs.org https://api.xposedornot.com https://haveibeenpwned.com https://disposable.debounce.io https://open.kickbox.com https://api.gleif.org https://www.wikidata.org https://api.hackertarget.com https://*.workers.dev; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; worker-src 'self'"
+    />
+    <title>Hydra</title>
+    <!-- rel-pwa: installable PWA. manifest + icons are same-origin ('self'); no new connect-src origin. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0F766E" />
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+  </head>
+  <body class="font-sans antialiased min-h-screen">
+	    <div x-data="shell" x-init="init()"
+         @hashchange.window="expandActiveSection()"
+         @keydown.window.cmd.k.prevent="searchOpen = true"
+         @keydown.window.ctrl.k.prevent="searchOpen = true"
+         @keydown.escape.window="searchOpen = false; sidebarOpen = false; caseMenuOpen = false">
+      <!-- Mobile backdrop -->
+      <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"
+           class="fixed inset-0 bg-ink/30 z-40 md:hidden"></div>
+
+      <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="fixed md:sticky inset-y-0 left-0 top-0 z-40 w-56 h-screen shrink-0 bg-bg-card border-r border-bg-border flex flex-col transition-transform md:translate-x-0 relative"
+               :class="{ 'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen, 'md:hidden': sidebarHidden }">
+          <!-- desktop-only collapse: hides the whole sidebar (graph/chat get the width); a floating button in
+               the top strip brings it back. Mobile uses the slide-in overlay (sidebarOpen) instead. -->
+          <button @click="toggleSidebar(true)" class="hidden md:flex absolute top-2 right-2 z-10 p-1 rounded text-ink-faint hover:text-ink hover:bg-bg-soft" title="Hide sidebar" aria-label="Hide sidebar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <a href="/" class="flex flex-col items-center justify-center gap-1 px-4 py-3 border-b border-bg-border shrink-0">
+            <img src="/icon-192.png" alt="Hydra" class="w-12 h-12 rounded" />
+            <span class="text-base font-display font-semibold text-ink tracking-tight">Hydra</span>
+          </a>
+          <nav class="flex-1 overflow-y-auto px-2 pb-6 pt-2" @click="sidebarOpen = false">
+            <!-- clu-workspace-nav: ONE chat-led Investigation Workspace. The sidebar is collapsed to
+                 EXACTLY Workspace (the chat + always-visible graph), Enrich (the tool), and Account
+                 (the key) — founder directive "kill all nav except Account + Enrich". Every other route
+                 STILL RESOLVES (app.ts ROUTES is unchanged; reachable by hash + in-app links like the
+                 lifecycle rail / entity-row "open in graph") — it is just no longer in the sidebar.
+                 The removed-route parity bookkeeping (manifest + matrix) is issue clu-parity-bookkeeping. -->
+            <a href="#/" data-route="/" class="flex items-center gap-2 pl-3 pr-2 py-1.5 text-sm rounded-md border-l-2 border-transparent text-ink-muted hover:text-ink hover:bg-bg-soft"><span class="truncate">Chat + graph</span></a>
+            <a href="#/enrich" data-route="/enrich" class="flex items-center gap-2 pl-3 pr-2 py-1.5 text-sm rounded-md border-l-2 border-transparent text-ink-muted hover:text-ink hover:bg-bg-soft"><span class="truncate">OSINT</span></a>
+            <a href="#/tools" data-route="/tools" class="flex items-center gap-2 pl-3 pr-2 py-1.5 text-sm rounded-md border-l-2 border-transparent text-ink-muted hover:text-ink hover:bg-bg-soft"><span class="truncate">Tools we use</span></a>
+            <a href="#/full-tool" data-route="/full-tool" class="flex items-center gap-2 pl-3 pr-2 py-1.5 text-sm rounded-md border-l-2 border-transparent text-ink-muted hover:text-ink hover:bg-bg-soft"><span class="truncate">Full tool</span></a>
+            <a href="#/account" data-route="/account" class="flex items-center gap-2 pl-3 pr-2 py-1.5 text-sm rounded-md border-l-2 border-transparent text-ink-muted hover:text-ink hover:bg-bg-soft"><span class="truncate">API</span></a>
+          </nav>
+          <!-- Contact / support: a clearly-visible way for the customer (the investigator) to reach
+               us, present on EVERY screen incl. the login gate. mailto target is founder-adjustable. -->
+          <div class="mt-auto px-2 pb-4 pt-2 border-t border-bg-border">
+            <a href="mailto:assafkip@gmail.com?subject=Hydra%20support"
+               class="flex items-center gap-2 pl-3 pr-2 py-1.5 text-sm rounded-md text-ink-muted hover:text-accent hover:bg-bg-soft"
+               title="Contact support">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" stroke="none"/><path d="M22 6l-10 7L2 6" /><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+              <span class="truncate">Contact / Support</span>
+            </a>
+            <!-- rel-bug: Report a bug — a static mailto fallback (works before JS); app.ts upgrades the
+                 href to a templated bug-report email (buildBugReportUrl). Zero case data. -->
+            <a id="bug-report-link" href="mailto:assaf@ktlystlabs.com?subject=kipi%20bug%20report"
+               rel="noopener"
+               class="flex items-center gap-2 pl-3 pr-2 py-1.5 text-sm rounded-md text-ink-muted hover:text-accent hover:bg-bg-soft"
+               title="Report a bug">
+              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M12 2v4M5 8l3 2M19 8l-3 2M4 14h4M16 14h4M6 20l2-2M18 20l-2-2"/></svg>
+              <span class="truncate">Report a bug</span>
+            </a>
+          </div>
+        </aside>
+
+        <!-- Content column -->
+        <div class="flex-1 min-w-0 flex flex-col">
+          <!-- Top strip -->
+          <div class="sticky top-0 z-30 bg-bg/85 backdrop-blur border-b border-bg-border">
+            <div class="px-4 h-12 flex items-center gap-3">
+              <button @click="sidebarOpen = !sidebarOpen" class="md:hidden p-1.5 -ml-1 rounded bg-transparent hover:bg-bg-soft text-ink-muted" title="Menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+              </button>
+              <!-- desktop-only: show the sidebar again after it was collapsed (x-if so hidden/md:flex aren't
+                   fought by x-show's inline display). On mobile the sidebar is the slide-in overlay above. -->
+              <template x-if="sidebarHidden">
+                <button @click="toggleSidebar(false)" class="hidden md:flex p-1.5 -ml-1 rounded bg-transparent hover:bg-bg-soft text-ink-muted" title="Show sidebar" aria-label="Show sidebar">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+                </button>
+              </template>
+              <!-- cl-ui: bg-transparent overrides the global button{background:accent} (app.css:77) so the chrome Back is a GHOST, not a filled-teal button (parity). -->
+              <!-- back-fix (restore-osint-tool-belt 2026-06-24): the listener is wired in app.ts wireChromeBack() —
+                   an inline onclick is DEAD under CSP (script-src 'self', no unsafe-inline). -->
+              <button id="chrome-back" type="button" title="Back" class="flex items-center gap-1 p-1.5 -ml-1 rounded bg-transparent hover:bg-bg-soft text-ink-muted">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                <span class="hidden sm:inline text-sm">Back</span>
+              </button>
+              <nav id="breadcrumb" aria-label="Breadcrumb" class="text-xs text-ink-faint truncate max-w-[40ch]">Home</nav>
+              <div class="flex-1"></div>
+              <!-- ux (brief §Cases #16): the chip is a DROPDOWN that switches the active case from anywhere
+                   (app.ts renderCaseMenu fills #case-menu + wires switchCase). #case-chip text is preserved
+                   (verify-cases asserts it). The sidebar "Cases" link keeps data-route="/cases" for parity. -->
+              <div class="relative">
+                <button type="button" id="caseChipBtn" title="Switch case" @click="caseMenuOpen = !caseMenuOpen"
+                        class="flex items-center gap-2 text-sm bg-bg-soft border border-bg-border px-3 py-1.5 rounded hover:border-accent">
+                  <span class="text-[11px] text-ink-faint uppercase tracking-wider">Cases</span>
+                  <span id="case-chip" class="font-mono text-xs text-ink">Default case</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-ink-faint"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div x-show="caseMenuOpen" x-cloak @click.outside="caseMenuOpen = false" @close-case-menu.window="caseMenuOpen = false"
+                     class="absolute right-0 mt-1 w-56 max-h-80 overflow-y-auto bg-bg-card border border-bg-border rounded-md shadow-lg z-40 py-1">
+                  <div id="case-menu"></div>
+                  <div class="border-t border-bg-border mt-1 pt-1">
+                    <a href="#/cases" @click="caseMenuOpen = false" class="block px-3 py-1.5 text-xs text-ink-muted hover:text-ink hover:bg-bg-soft">Manage cases →</a>
+                  </div>
+                </div>
+              </div>
+              <!-- GitHub star button: links to the public repo; the count is filled by src/github-stars.ts
+                   on load (api.github.com is CSP-allowed). CSP forbids inline JS, so the fetch is in the bundle. -->
+              <a id="gh-stars" href="https://github.com/assafkip/hydra" target="_blank" rel="noopener noreferrer"
+                 title="Star Hydra on GitHub"
+                 class="flex items-center gap-1.5 text-sm bg-bg-soft border border-bg-border px-2.5 py-1.5 rounded hover:border-accent text-ink-muted hover:text-ink">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.76-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                <span id="gh-star-count" class="font-mono text-xs tabular-nums">★</span>
+              </a>
+              <!-- Light Table theme toggle: light bench ↔ bench at night. Alpine-driven (CSP build), persisted in theme.ts. -->
+              <button id="themeToggle" type="button" @click="toggleTheme()"
+                      :title="theme === 'dark' ? 'Switch to light' : 'Switch to dark'"
+                      :aria-label="theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+                      class="flex items-center justify-center w-8 h-8 rounded text-ink-muted hover:text-ink hover:bg-bg-soft">
+                <svg x-show="theme !== 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg x-show="theme === 'dark'" x-cloak width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+              </button>
+              <button id="searchBtn" @click="searchOpen = true" class="flex items-center gap-2 text-sm text-ink-muted hover:text-ink bg-bg-soft border border-bg-border px-3 py-1.5 rounded">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                <span class="hidden lg:inline">Search</span>
+                <span class="kbd">⌘K</span>
+              </button>
+            </div>
+            <!-- ux-rail (nav overhaul 1c): persistent lifecycle rail (Intake→Investigate→Deliver→Portfolio).
+                 app.ts::renderLifecycleRail fills #lifecycle-rail from lifecycle.ts + toggles `hidden` when
+                 no vault is loaded. Per-case; the stage owning the active route is marked current. -->
+            <div id="lifecycle-rail" class="hidden border-t border-bg-border px-4 py-1.5 flex items-center gap-1 overflow-x-auto" aria-label="Investigation lifecycle"></div>
+          </div>
+
+          <!-- Full-height flex column (D2) so the unlocked split-view's graph pane can fill the
+               viewport below the top bar. Padding/max-width live on #app.centered (per-state), so the
+               create/unlock cards stay centered while the split-view goes full-bleed (D8). -->
+          <main class="flex-1 min-h-0 w-full flex flex-col">
+            <!-- Client surfaces. #app is .centered (create/unlock card) or .splitview (graph+dock). -->
+            <div id="app" class="flex-1 min-h-0 flex flex-col"></div>
+          </main>
+        </div>
+      </div>
+
+      <!-- Search modal: wired to the client entity DB (kk-search). app.ts attaches the #cmdk-input listener. -->
+      <div x-show="searchOpen" x-cloak @click.self="searchOpen = false"
+           class="fixed inset-0 bg-ink/40 z-50 flex items-start justify-center pt-24">
+        <div class="bg-bg-card border border-bg-border rounded-lg shadow-pop w-full max-w-2xl mx-4">
+          <!-- kk-search: focus the input whenever the modal opens (any trigger). $nextTick fires BEFORE
+               x-show applies display:block, so .focus() no-ops on a still-hidden input (verified: activeElement
+               stayed BODY); a short setTimeout defers focus past the display flip so the real keyboard
+               workflow (⌘K then type) works, not just the button. -->
+          <input id="cmdk-input" x-effect="searchOpen && setTimeout(() => $el.focus(), 60)" type="text" placeholder="Search by name, handle, IP, channel, alias…"
+                 class="w-full bg-transparent px-5 py-4 outline-none text-lg border-b border-bg-border text-ink placeholder:text-ink-faint" />
+          <div id="cmdk-results" class="max-h-80 overflow-auto px-2 py-2 text-sm"></div>
+          <div class="px-5 py-3 text-ink-muted text-xs border-t border-bg-border">Search the case entity DB. <span class="kbd">esc</span> to close.</div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,1094 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   kipi-web — EXACT clone of the webapp's look (investigations/webapp/_layout.html).
+   Light theme, Inter/Space Grotesk/IBM Plex Mono (self-hosted), teal accent. The
+   custom CSS below is ported verbatim from the webapp's <style>; the client
+   component styles beneath it match the webapp's card/pill/button language.
+   ============================================================================ */
+
+/* ============================================================================
+   LIGHT TABLE design tokens (Hydra redesign 2026-07-06). Two themes on one
+   palette: a triplet RGB source of truth (--c-*, space-separated so Tailwind's
+   rgb(var(--c-x) / <alpha>) modifiers work) backs BOTH the semantic hex vars the
+   custom CSS layer reads (--bg/--ink/--accent…) AND the Tailwind color tokens.
+   :root = light bench (warm cream); :root[data-theme="dark"] = bench at night
+   (NOT neon). Values ground to the approved chat+graph Light Table prototype.
+   The graph-surface vars (--canvas/--grid/--tick/--edge…) feed cy-graph.ts.
+   ============================================================================ */
+:root {
+  /* --- triplet palette (source of truth; Tailwind + hex vars derive from these) --- */
+  --c-bg: 251 249 244;
+  --c-bg-soft: 245 242 234;
+  --c-card: 255 255 255;
+  --c-panel2: 247 245 239;
+  --c-border: 231 226 215;
+  --c-line: 219 213 199;
+  --c-ink: 26 26 25;
+  --c-ink-muted: 91 85 75;
+  --c-ink-faint: 107 101 94; /* WCAG AA on --bg; fainter than muted so ink>muted>faint holds */
+  --c-accent: 15 118 110;
+  --c-accent-hover: 11 95 88;
+  --c-accent-ink: 11 79 73;
+  --c-role-operator: 194 65 12;
+  --c-role-channel: 126 34 206;
+  --c-role-ioc: 185 28 28;
+  --c-role-infra: 21 128 61;
+  --c-role-source: 71 85 105;
+  --c-seed: 126 34 206;
+  --c-conf-high: 21 128 61;
+  --c-conf-medium: 180 83 9;
+  --c-conf-low: 87 83 78;
+  --c-sev-high: 185 28 28;
+  --c-sev-med: 180 83 9;
+  --c-sev-low: 71 85 105;
+  --c-status-new: 15 118 110;
+  --c-status-up: 185 28 28;
+  --c-status-down: 21 128 61;
+
+  /* --- semantic hex vars (the custom CSS layer reads these) --- */
+  --bg: rgb(var(--c-bg));
+  --bg-soft: rgb(var(--c-bg-soft));
+  --card: rgb(var(--c-card));
+  --border: rgb(var(--c-border));
+  --line: rgb(var(--c-line));
+  --ink: rgb(var(--c-ink));
+  --muted: rgb(var(--c-ink-muted));
+  --faint: rgb(var(--c-ink-faint));
+  --accent: rgb(var(--c-accent));
+  --accent-hover: rgb(var(--c-accent-hover));
+  --accent-ink: rgb(var(--c-accent-ink));
+  --err: rgb(var(--c-sev-high));
+  --surface: rgb(var(--c-card));
+  --accent-wash: rgb(var(--c-accent) / 0.10);
+  --on-accent: #FFFFFF; /* text on an accent-filled surface — white reads on the dark-teal light accent */
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+  /* role-pill tokens — role fill wash + foreground, both theme-derived */
+  --role-operator-bg: rgb(var(--c-role-operator) / 0.12);  --role-operator-fg: rgb(var(--c-role-operator));
+  --role-channel-bg: rgb(var(--c-role-channel) / 0.12);    --role-channel-fg: rgb(var(--c-role-channel));
+  --role-ioc-bg: rgb(var(--c-role-ioc) / 0.10);            --role-ioc-fg: rgb(var(--c-role-ioc));
+  --role-infra-bg: rgb(var(--c-role-infra) / 0.12);        --role-infra-fg: rgb(var(--c-role-infra));
+  --role-source-bg: rgb(var(--c-role-source) / 0.12);      --role-source-fg: rgb(var(--c-role-source));
+
+  /* --- graph surface (the ink-and-light bench cy-graph.ts renders on) --- */
+  --canvas: radial-gradient(130% 100% at 44% 42%, #FFFFFF 0%, #FBF9F4 58%, #F4F1E8 100%);
+  --grid: rgba(46, 40, 30, 0.05);
+  --tick: rgba(46, 40, 30, 0.14);
+  --hair: rgba(60, 52, 40, 0.10);
+  --edge: rgba(46, 40, 30, 0.42);
+  --edge-strong: rgba(30, 26, 18, 0.62);
+  --node-ring: rgba(26, 22, 16, 0.30);
+  --node-lead: rgba(160, 150, 128, 0.55);
+  --node-label: #1A1A19;
+  --node-label-outline: #FBF9F4;
+  --overlay-bg: rgb(var(--c-card) / 0.92);
+  --overlay-scrim: rgba(28, 25, 23, 0.32);
+
+  color-scheme: light;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+:root[data-theme="dark"] {
+  /* bench at night — warm dark, not neon. Same names, dark values. */
+  --c-bg: 23 19 14;
+  --c-bg-soft: 29 24 17;
+  --c-card: 33 27 20;
+  --c-panel2: 37 30 22;
+  --c-border: 46 40 32;
+  --c-line: 59 52 42;
+  --c-ink: 242 238 228;
+  --c-ink-muted: 167 158 141;
+  --c-ink-faint: 140 133 120;
+  --c-accent: 45 212 191;
+  --c-accent-hover: 94 234 212;
+  --c-accent-ink: 94 234 212;
+  --c-role-operator: 240 128 63;
+  --c-role-channel: 190 139 234;
+  --c-role-ioc: 236 106 106;
+  --c-role-infra: 63 178 122;
+  --c-role-source: 147 162 179;
+  --c-seed: 190 139 234;
+  --c-conf-high: 63 178 122;
+  --c-conf-medium: 214 138 58;
+  --c-conf-low: 167 158 141;
+  --c-sev-high: 236 106 106;
+  --c-sev-med: 214 138 58;
+  --c-sev-low: 147 162 179;
+  --c-status-new: 45 212 191;
+  --c-status-up: 236 106 106;
+  --c-status-down: 63 178 122;
+
+  --canvas: radial-gradient(130% 100% at 44% 42%, #1F1912 0%, #17130E 62%, #120F0A 100%);
+  --grid: rgba(240, 232, 212, 0.05);
+  --tick: rgba(240, 232, 212, 0.13);
+  --hair: rgba(230, 220, 196, 0.09);
+  --edge: rgba(232, 222, 198, 0.34);
+  --edge-strong: rgba(240, 232, 212, 0.58);
+  --node-ring: rgba(240, 232, 212, 0.34);
+  --node-lead: rgba(120, 108, 84, 0.55);
+  --node-label: #F2EEE4;
+  --node-label-outline: #17130E;
+  --overlay-bg: rgb(var(--c-card) / 0.94);
+  --overlay-scrim: rgba(6, 5, 3, 0.55);
+  --on-accent: #17130E; /* dark ink on the BRIGHT dark-theme teal — white would fail contrast on #2DD4BF */
+
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* ---- ported verbatim from webapp _layout.html <style> ---- */
+[x-cloak] { display: none !important; }
+.markdown p { margin: 0 0 0.5em; }
+.markdown p:last-child { margin-bottom: 0; }
+.markdown ul { margin: 0.25em 0; padding-left: 1.1em; list-style: disc; }
+.markdown strong { font-weight: 600; }
+.markdown code { font-family: ui-monospace, monospace; font-size: 0.92em; background: rgba(0,0,0,0.05); padding: 0 0.25em; border-radius: 3px; }
+.markdown a { color: var(--accent); }
+.markdown .chat-node { cursor: pointer; }
+.markdown .chat-node:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+/* inline icon helper — aligns Lucide-style SVGs (the index.html sidebar/search/back idiom) in both
+   inline text and flex contexts. Replaces the former emoji icons (no-emoji-icons rule). */
+.ico { vertical-align: -0.125em; flex-shrink: 0; }
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: var(--bg-soft); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-ink-faint) / 0.7); }
+:focus-visible { outline: 2px solid rgba(15,118,110,.55); outline-offset: 2px; }
+
+.role-pill { font: 600 10px/1.4 "Inter", sans-serif; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; }
+.role-operator { background: var(--role-operator-bg); color: var(--role-operator-fg); }
+.role-channel { background: var(--role-channel-bg); color: var(--role-channel-fg); }
+.role-ioc { background: var(--role-ioc-bg); color: var(--role-ioc-fg); }
+.role-infra { background: var(--role-infra-bg); color: var(--role-infra-fg); }
+.role-source { background: var(--role-source-bg); color: var(--role-source-fg); }
+.role- { background: var(--bg-soft); color: var(--muted); }
+
+.kbd { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; background: var(--bg-soft); color: var(--muted); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
+
+.markdown h1, .markdown h2, .markdown h3 { font-family: "Space Grotesk", sans-serif; font-weight: 600; margin-top: 1.2em; margin-bottom: .4em; color: var(--ink); }
+.markdown h1 { font-size: 1.5em; } .markdown h2 { font-size: 1.25em; color: var(--accent-ink); } .markdown h3 { font-size: 1.05em; }
+.markdown ul, .markdown ol { margin-left: 1.2em; list-style-position: outside; } .markdown ul { list-style: disc; } .markdown ol { list-style: decimal; }
+.markdown li { margin: .25em 0; } .markdown p { margin: .6em 0; }
+.markdown code { background: var(--bg-soft); color: var(--accent-ink); padding: 1px 5px; border-radius: 3px; font-family: "IBM Plex Mono", monospace; font-size: .9em; }
+.markdown blockquote { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--muted); margin: .6em 0; }
+.markdown table { border-collapse: collapse; margin: .6em 0; font-size: .92em; }
+.markdown th, .markdown td { border: 1px solid var(--border); padding: 4px 10px; text-align: left; }
+.markdown th { background: var(--bg-soft); font-weight: 600; }
+
+/* ---- client surfaces, restyled to the webapp card/button/input language ---- */
+header h1 { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 22px; letter-spacing: -0.3px; color: var(--ink); }
+.tag { color: var(--muted); margin: 4px 0 16px; font-size: 13px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-top: 14px; box-shadow: 0 1px 2px rgba(28,25,23,0.04), 0 1px 3px rgba(28,25,23,0.06); }
+.card h2 { margin: 0 0 8px; font-family: "Space Grotesk", sans-serif; font-size: 16px; font-weight: 600; color: var(--ink); }
+input { width: 100%; padding: 9px 12px; margin: 8px 0; background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--ink); font-size: 14px; font-family: inherit; }
+input::placeholder { color: var(--faint); }
+button { padding: 8px 14px; margin: 4px 8px 4px 0; background: var(--accent); color: var(--on-accent); border: 0; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; }
+button:hover { background: var(--accent-hover); }
+button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+button.ghost:hover { background: var(--bg-soft); }
+.recovery { background: var(--accent-wash); color: var(--accent-ink); padding: 12px; border-radius: 8px; white-space: pre-wrap; word-break: break-all; border: 1px solid rgb(var(--c-accent) / 0.4); font-family: "IBM Plex Mono", monospace; font-size: 12px; }
+#status.ok { color: var(--accent); min-height: 18px; font-size: 13px; }
+#status.err { color: var(--err); min-height: 18px; font-size: 13px; }
+/* chunk-6 auth screens */
+.auth-card { max-width: 420px; }
+.auth-links { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; }
+.auth-sep { border: 0; border-top: 1px solid var(--border); margin: 14px 0 8px; }
+.tier { color: var(--accent); font-size: 11px; border: 1px solid var(--accent); border-radius: 4px; padding: 1px 5px; }
+
+.storagebar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin: 8px 0 4px; }
+#storagebanner { font-size: 13px; }
+#storagebanner.disk { color: var(--accent); }
+#storagebanner.opfs { color: var(--muted); }
+#storagebanner.warn { color: var(--err); }
+.storagebtns { display: flex; flex-wrap: wrap; align-items: center; }
+.storagebtns button { padding: 6px 10px; font-size: 13px; }
+.importwrap { display: inline-flex; }
+
+.muted { color: var(--muted); font-size: 13px; }
+.chip-ok { color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 1px 6px; font-size: 12px; }
+.chip-warn { color: var(--err); border: 1px solid var(--err); border-radius: 4px; padding: 1px 6px; font-size: 12px; }
+.trail { margin: 10px 0; max-height: 260px; overflow-y: auto; }
+.step { font-size: 13px; padding: 5px 8px; border-left: 2px solid var(--border); margin: 3px 0; color: var(--muted); }
+.step.tool { border-left-color: var(--accent); color: var(--ink); }
+.step .ok { color: var(--accent); }
+.step .err { color: var(--err); }
+.finding { padding: 4px 0; }
+.lead { padding: 3px 0; font-size: 13px; }
+#findings h3, #leads h3 { font-size: 14px; margin: 12px 0 4px; font-family: "Space Grotesk", sans-serif; }
+/* chat-dock-readable: NO own max-height/scroll (was 420px+auto) — the brief renders inside #chat-scroll, so
+   a nested scrollbar would re-create the "scroll-trap inside a scroll" the issue removes. It flows; the
+   single #chat-scroll handles overflow. */
+.brief { white-space: pre-wrap; word-break: break-word; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 13px; line-height: 1.5; color: var(--ink); }
+.brief:empty { display: none; }
+.histrun { font-size: 13px; padding: 3px 0; }
+.histbrief { padding: 2px 0; }
+button.link { background: none; border: 0; color: var(--accent); padding: 2px 0; margin: 0; font-size: 13px; cursor: pointer; text-decoration: underline; font-weight: 400; }
+
+/* ============================================================================
+   Cytoscape graph surface — clone of investigations/webapp/templates/graph.html.
+   The dot-grid blueprint background + light card chrome; the node/edge styling
+   lives in the cytoscape stylesheet (src/graph/cy-graph.ts).
+   ============================================================================ */
+.cygraph-surface {
+  position: relative;
+  height: 70vh;
+  min-height: 460px;
+  margin: 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  /* Light Table bench: the calm ink-and-light field. The panning grid + ruler ticks
+     are drawn ON the cytoscape canvas by cy-graph.ts (so they move with the graph). */
+  background: var(--canvas);
+}
+/* tb-click: z-index:0 makes #cy its OWN stacking context so the cytoscape expand-collapse plugin's
+   overlay canvas (position:absolute; z-index:999, appended INTO #cy) stays topmost WITHIN the graph
+   but is trapped UNDER the HTML overlays (.cy-controls/.cy-stats=10, .cy-menu=60; the #cy-drawer was
+   removed in ccc-workspace-shell — node detail is the chat node card now).
+   Without it, #cy is z-index:auto (no context) so that 999 canvas escapes into .graph-pane's context
+   and paints over every overlay — eating all toolbar/drawer/menu clicks (founder: "toolbars not
+   clickable, it clicks the graph behind them"). The single fix covers every on-graph surface. */
+#cy { position: absolute; inset: 0; z-index: 0; }
+.cy-controls {
+  position: absolute; top: 8px; left: 8px; z-index: 10;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  background: var(--overlay-bg); backdrop-filter: blur(6px); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 8px; box-shadow: 0 1px 3px rgba(28,25,23,0.08);
+  max-width: calc(100% - 16px);
+}
+.cy-controls select, .cy-controls input { width: auto; margin: 0; padding: 4px 8px; font-size: 12px; }
+.cy-controls input.cy-search { width: 160px; }
+.cy-controls button { margin: 0; padding: 4px 9px; font-size: 12px; }
+.cy-controls button.on { background: var(--accent); color: var(--on-accent); }
+.cy-msg { font-size: 11px; color: var(--faint); }
+
+/* A4: facet selects + visibility toggles in the controls strip; the Legend overlay panel. */
+.cy-controls select.cy-facet { max-width: 150px; }
+.cy-controls .cy-toggle { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--faint); cursor: pointer; }
+.cy-controls .cy-toggle input { width: auto; }
+.cy-legend {
+  position: absolute; top: 8px; right: 8px; z-index: 11; max-width: 300px; max-height: 70%; overflow-y: auto;
+  background: var(--overlay-bg); backdrop-filter: blur(6px); border: 1px solid var(--border); border-radius: 6px;
+  padding: 10px 12px; font-size: 11px; color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.cy-legend-h { text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); margin: 8px 0 3px; font-size: 10px; }
+.cy-legend-h:first-child { margin-top: 0; }
+.cy-legend-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; line-height: 1.3; }
+.cy-legend-swatch { display: inline-block; width: 13px; height: 13px; flex: 0 0 auto; }
+.cy-legend-line { display: inline-block; width: 22px; height: 0; flex: 0 0 auto; }
+
+.cy-stats {
+  position: absolute; bottom: 8px; left: 8px; z-index: 10;
+  display: flex; gap: 10px; font-size: 11px; color: var(--muted);
+  background: var(--overlay-bg); backdrop-filter: blur(6px); border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 8px; font-variant-numeric: tabular-nums;
+}
+.cy-setchip {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); z-index: 10;
+  max-width: 320px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: 0 8px 24px rgba(28,25,23,0.10); font-size: 12px;
+}
+.cy-setchip-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.cy-setchip-head .link { font-size: 12px; }
+.cy-setchip ul { list-style: none; margin: 0; padding: 6px 10px; max-height: 140px; overflow-y: auto; }
+.cy-setchip li { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cy-menu {
+  position: fixed; z-index: 60; width: 224px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 24px rgba(28,25,23,0.18);
+  padding: 4px 0; font-size: 13px;
+}
+.cy-menu .mhead { padding: 4px 12px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--faint); font-family: "IBM Plex Mono", monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cy-menu button { display: block; width: 100%; text-align: left; margin: 0; padding: 6px 12px; background: none; color: var(--ink); font-weight: 400; border-radius: 0; }
+.cy-menu button:hover { background: var(--bg-soft); }
+.cy-menu button:disabled { color: var(--faint); cursor: default; }
+
+/* remove-cards (founder 2026-07-03): chat node/edge/runs cards removed — their rules deleted. */
+
+/* ============================================================================
+   Home split-view (clone of graph.html's right column): a graph-dominant content
+   area + a collapsible Investigator dock. .splitview fills the viewport below the
+   top bar; .centered keeps the create/unlock card padded + centered (no stretch).
+   ============================================================================ */
+/* chat-scroll-bound (founder 2026-06-25): the shell is `min-h-screen` (index.html), so it GROWS with
+   content — that left #app.splitview's flex chain unbounded, so the inner #chat-scroll never engaged its
+   own overflow and a long agent trail scrolled the whole PAGE to infinity. Cap splitview to the viewport
+   (minus the 48px sticky top strip, h-12) so #chat-scroll scrolls INTERNALLY. Scoped to splitview only —
+   .centered (login) + .page-view keep their normal page flow, untouched. */
+#app.splitview { flex: 1; min-height: 0; max-height: calc(100dvh - 48px); display: flex; flex-direction: column; }
+#app.centered { width: 100%; max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
+
+/* ccc-workspace-shell: the workspace row — graph canvas (left, fills) + chat control bar (right). The
+   chat is a vertical bar now, so these sit side-by-side; #status stays a thin line above the row. */
+.ws-row { flex: 1; min-height: 0; display: flex; flex-direction: row; position: relative; }
+
+/* (removed: the .setup-strip block — the compact home setup strip was replaced by the /account page
+   in the ac-ui move; the rules matched no element. Goal-2 dead-CSS cleanup.) */
+
+/* The graph pane fills the space between the strip and the dock. `isolation: isolate`
+   traps cytoscape's z-999 expand-collapse layer inside the pane (graph.html 240-290). */
+.graph-pane { flex: 1; height: auto; min-height: 240px; min-width: 0; margin: 0; border-radius: 0; border-left: 0; border-right: 0; isolation: isolate; background: var(--canvas); }
+.cy-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 14px; pointer-events: none; z-index: 5; }
+.cy-empty[hidden] { display: none; }
+
+/* ob-tour: the one-time first-run overlay — fixed over the whole viewport so the card is centered and
+   never clipped by the (compressed) graph pane. Appended to the app root, so it is torn down on nav. */
+.onboard-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--overlay-scrim); z-index: 50; padding: 16px; }
+.onboard-card { max-width: 440px; max-height: 90vh; overflow: auto; margin: 0; }
+.onboard-steps { margin: 8px 0 4px; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.onboard-steps li { margin: 6px 0; }
+.onboard-steps b { color: var(--ink); }
+.onboard-dismiss { margin-top: 8px; }
+
+/* rel-pwa: the opt-in "update ready" bar (a new SW is waiting; the user approves the swap). */
+/* hydra ISSUE-4 family (founder 2026-07-07): was background:var(--ink); color:#fff — in dark mode --ink is
+   near-WHITE, so the banner rendered white-on-white and vanished. Use the themed card/ink pairing (both flip
+   together): light = dark text on a light card, dark = light text on a dark card. Readable in both. */
+.pwa-update { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 10px; background: var(--card); color: var(--ink); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; box-shadow: 0 4px 16px rgba(28,25,23,0.25); font-size: 13px; }
+.pwa-update button { margin: 0; }
+.pwa-update button.ghost { color: var(--ink); border-color: var(--border); }
+
+/* rel-feedback: the user-authored feedback control (a github-issue anchor + the zero-data disclosure). */
+.feedback-card { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.feedback-link { color: var(--accent); font-weight: 600; font-size: 14px; text-decoration: none; border: 1px solid var(--accent); border-radius: 8px; padding: 6px 12px; }
+.feedback-link:hover { background: var(--bg-soft); }
+.feedback-note { font-size: 12px; }
+
+/* ob-keyprompt: the deferred-key moment — highlight the key card when a keyless run is attempted. */
+.key-needed { border-color: var(--err); box-shadow: 0 0 0 2px rgba(185,28,28,0.18); }
+.key-needed #keychip { animation: keypulse 1.1s ease-in-out 2; }
+@keyframes keypulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* ccc-workspace-shell: the chat is a RIGHT vertical bar (was a bottom dock). Open = a resizable column
+   (width set inline by the drag handle); collapsed = a thin 44px rail showing just the toggle caret. */
+/* No CSS max-width: the JS drag handler is the single authority on the open width (it clamps to leave
+   the graph room) — a CSS cap here would silently override the inline width and desync the persisted value. */
+.dock { position: relative; border-left: 1px solid var(--border); background: var(--card); display: flex; flex-direction: column; flex-shrink: 0; width: 420px; height: 100%; min-height: 0; }
+/* fully HIDABLE: collapsing removes the bar entirely (graph goes full-width). A floating .chat-reopen
+   button (rendered as the dock's sibling) brings it back — the in-bar caret can't reopen a hidden bar. */
+.dock:not(.open) { display: none; }
+.dock-resize { position: absolute; left: -3px; top: 0; bottom: 0; width: 8px; cursor: col-resize; z-index: 12; touch-action: none; }
+.dock-resize:hover { background: rgba(15,118,110,.18); }
+.dock-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 38px; padding: 0 12px; margin: 0; background: none; color: var(--ink); font-weight: 600; font-size: 14px; border-radius: 0; cursor: pointer; }
+.dock-bar:hover { background: var(--bg-soft); }
+.dock.open .dock-bar { border-bottom: 1px solid var(--border); }
+.dock-caret { color: var(--faint); font-size: 14px; font-weight: 400; }
+/* the floating reopen affordance — sits over the graph, top-right, only while the chat bar is hidden. */
+.chat-reopen { position: absolute; bottom: 16px; right: 16px; z-index: 25; display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 9px 14px; font-size: 13px; font-weight: 600; color: var(--on-accent); background: var(--accent); border: 0; border-radius: 999px; box-shadow: 0 2px 10px rgba(28,25,23,0.22); cursor: pointer; }
+.chat-reopen:hover { background: var(--accent-hover, #0B5F58); }
+.chat-reopen[hidden] { display: none; }
+/* rsn-run-chip / ch-prominent-stop: the "Investigator running…" chip — now shown on EVERY route while a run
+   is live (the one unmistakable, always-reachable Stop). position:fixed (viewport-anchored) so it shows over
+   any route, never clipped. Anchored bottom-CENTER: clear of the persistent LEFT sidebar + bottom-left
+   .cy-stats (codex), the RIGHT chat bar + its in-dock Stop, and the top graph toolbar. translateX(-50%)
+   centers it over the graph canvas. A slightly heavier pad/shadow makes it read as the primary Stop. */
+.run-chip { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 45; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600; color: var(--ink, #1c1917); background: var(--surface, #fff); border: 1px solid var(--border, #e7e5e4); border-radius: 999px; box-shadow: 0 4px 16px rgba(28,25,23,0.22); }
+.run-chip[hidden] { display: none; }
+.run-chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, #0B5F58); animation: run-chip-pulse 1.2s ease-in-out infinite; }
+@keyframes run-chip-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.run-chip-stop { margin: 0; padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--on-accent); background: var(--accent, #0B5F58); border: 0; border-radius: 999px; cursor: pointer; }
+.run-chip-stop:hover { background: var(--accent-hover, #0B5F58); }
+.run-chip-stop[hidden] { display: none; }
+/* G1 (video-review 2026-06-25): the terminal flash — a solid (non-pulsing) dot so a finished/stopped run
+   reads as DONE, not still-working. Green for a clean finish, grey for a stop. Held ~5s then the chip hides. */
+.run-chip-done { border-color: var(--accent, #0B5F58); }
+.run-chip-done .run-chip-dot { animation: none; background: var(--accent, #0B5F58); }
+.run-chip-stopped .run-chip-dot { animation: none; background: var(--muted, #78716c); }
+@media (prefers-reduced-motion: reduce) { .run-chip-dot { animation: none; } }
+/* chat-dock-readable: the dock-body fills the open dock as a flex column so the inner #chat-scroll can flex
+   to the available height (ONE scroller), instead of stacking its own scroll over the chat's nested scroll. */
+.dock-body { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 12px 16px; }
+.dock-body[hidden] { display: none; }
+
+/* ============================================================================
+   Chat dock — clone of investigations/webapp/templates/_chat.html (docked layout):
+   ONE conversational investigator (message list + ask/command input + live trail +
+   node/edge/runs cards), wired to the browser loop. Restyled to the webapp's
+   bubble/card language. Built imperatively in src/chat/dock.ts.
+   ============================================================================ */
+.chat-host { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.chatdock { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+/* chat-dock-readable: NO max-height cap (was 30vh — squeezed long responses into a tiny box). flex:1 fills
+   the dock and #chat-scroll is the single scroller. min-height:0 (not 120px) so on a SHORT viewport the
+   scroller yields space to the input/Stop row first — the input is never clipped out of reach (codex). */
+/* hydra ISSUE-3 (founder 2026-07-07): a small floor so the conversation can't be squeezed to a sliver when
+   the tradecraft bar + trail crowd it. Kept modest (64px, ~3 lines) to honor the codex "input never clipped"
+   note above — a large floor could push the input off a short viewport; the run-log collapse is the primary fix. */
+.chat-scroll { flex: 1; min-height: 64px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 2px 2px 6px; }
+.chat-empty-prompt { color: var(--faint); font-size: 13px; line-height: 1.55; padding: 4px 2px; }
+/* chat-feels-like-a-product: turn rhythm — a real gap between speakers so the thread breathes. */
+#chat-messages { display: flex; flex-direction: column; gap: 14px; padding: 2px 0; }
+.msg { display: flex; flex-direction: column; gap: 3px; }
+.msg.you { align-items: flex-end; }
+.msg.agent { align-items: flex-start; }
+.msg.aside { align-items: center; }
+/* identity: a small uppercase byline above each turn (no avatars — cheap, unmistakable two-party thread). */
+.msg-byline { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); padding: 0 4px; }
+.msg.you .msg-byline { color: var(--accent-ink); }
+.bubble { display: inline-block; border-radius: 12px; padding: 9px 13px; max-width: 92%; font-size: 13.5px; line-height: 1.5; }
+.you-bubble { background: var(--accent); color: var(--on-accent); white-space: pre-wrap; text-align: left; border-bottom-right-radius: 4px; }
+/* assistant: soft card with an accent LEFT RAIL — reads as the investigator speaking, not app chrome. */
+.agent-bubble { background: var(--card); color: var(--ink); border: 1px solid var(--border); border-left: 3px solid var(--accent); text-align: left; border-bottom-left-radius: 4px; }
+.agent-bubble.markdown > *:first-child { margin-top: 0; }
+.agent-bubble.markdown > *:last-child { margin-bottom: 0; }
+/* the live streaming bubble types out; a blinking caret marks it as in-progress. */
+.msg.streaming .stream-bubble::after { content: "▌"; color: var(--accent); margin-left: 1px; animation: chat-caret 1s steps(1) infinite; }
+@keyframes chat-caret { 50% { opacity: 0; } }
+.aside-text { font-size: 11px; color: var(--faint); font-style: italic; padding: 1px 6px; }
+/* sources as a citation chip, not a 10px afterthought. */
+.sources { font-size: 10.5px; color: var(--muted); margin-top: 2px; padding: 2px 8px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px; align-self: flex-start; }
+/* the in-thread thinking indicator: three blinking dots + the live status label. */
+.thinking-dots { display: inline-flex; gap: 3px; align-items: center; }
+.thinking-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: chat-blink 1.2s infinite; }
+.thinking-dots span:nth-child(2) { animation-delay: .2s; }
+.thinking-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes chat-blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+/* the live run trail (#trail) — the streaming step list, styled like the webapp's liveSteps box.
+   scope-scroll-fix (founder 2026-07-07): the log is a BOUNDED, self-scrolling window. When it flowed in the
+   single #chat-scroll (the old chat-dock-readable choice) its live growth reflowed the whole conversation —
+   the founder's "the log keeps growing and pulls the chat down". A capped box with its own overflow keeps
+   the log's OUTER height fixed, so streaming steps never move the chat above/below it; app.ts follows the
+   log's OWN bottom (pin-aware) so the newest step stays in view without yanking a manual scroll-up.
+   overscroll-behavior:contain stops scroll-chaining into the outer chat when the log hits its edge. */
+/* hydra ISSUE-4 (dark contrast, founder 2026-07-07): the bg was a hardcoded light literal rgba(244,244,243)
+   that never flipped for dark mode — light step text composited over a near-white panel = invisible. Route
+   it through the semantic soft-bg token so it flips with the theme. */
+/* hydra ISSUE-7 (founder 2026-07-08): the log is now RESIZABLE (drag the bottom edge) — explicit height +
+   resize:vertical + overflow:auto. Default 34vh, draggable 84px–78vh; dock.ts persists the dragged height. */
+.livetrail { flex: 0 0 auto; border: 1px solid var(--border); border-radius: 8px; background: rgb(var(--c-bg-soft) / 0.5); padding: 6px 8px; margin-bottom: 8px; font-size: 12px; height: 34vh; min-height: 84px; max-height: 78vh; overflow: auto; overscroll-behavior: contain; resize: vertical; }
+/* hydra ISSUE-3 (log overlaps chat, founder 2026-07-07): the run log had no dismiss — it held 40vh open for
+   the whole run and squeezed the conversation toward zero. .collapsed zeroes the box (dock.ts toggle,
+   persisted in sessionStorage["kipiTrailCollapsed"]); the header stays visible so it can be reopened. */
+.livetrail.collapsed { height: 0; min-height: 0; max-height: 0; padding-top: 0; padding-bottom: 0; border-width: 0; margin-bottom: 0; overflow: hidden; resize: none; }
+.livetrail-wrap { display: flex; flex-direction: column; }
+.livetrail-wrap:has(#trail:empty) { display: none; } /* no steps yet → hide the header + box (replaces #trail:empty for the wrapped case) */
+/* hydra ISSUE-7 (founder 2026-07-08): the pill "was not very clear" as a control — make it a full-width,
+   clearly-clickable header BAR with a caret, a "Run log" label, and a Show/Hide hint on the right. */
+.livetrail-toggle { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 6px; padding: 6px 10px; font-size: 12px; font-weight: 600; color: var(--ink); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left; }
+.livetrail-toggle:hover { border-color: var(--accent); color: var(--accent); background: rgb(var(--c-accent) / 0.06); }
+.livetrail-toggle .tc-caret { font-size: 11px; line-height: 1; width: 12px; text-align: center; color: var(--muted); }
+.livetrail-toggle:hover .tc-caret { color: var(--accent); }
+.livetrail-toggle .tc-label { flex: 1; }
+.livetrail-toggle .tc-hint { font-size: 11px; font-weight: 500; color: var(--muted); }
+.livetrail-toggle:hover .tc-hint { color: var(--accent); }
+#findings:empty, #leads:empty { display: none; }
+.brief-row { display: flex; gap: 6px; }
+.brief-row[hidden] { display: none; }
+.brief-row button { margin: 0; padding: 5px 9px; font-size: 12px; }
+.chat-busy { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); align-self: flex-start; padding: 7px 12px; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 12px; border-bottom-left-radius: 4px; }
+.chat-busy[hidden] { display: none; }
+.chat-busy .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Accessibility: honor reduced-motion — kill the caret/dot/pulse animations for users who ask. */
+@media (prefers-reduced-motion: reduce) {
+  .thinking-dots span, .msg.streaming .stream-bubble::after, .chat-form input#chat-input.lc-prefilled { animation: none !important; }
+  .thinking-dots span { opacity: .7; }
+}
+
+/* cd-tradecraft: the analytical-gate bar above the input + the inline Scope form. */
+.tc-bar { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.tc-step { margin: 0; padding: 3px 8px; font-size: 11px; line-height: 1.4; background: var(--bg-soft); color: var(--muted); border: 1px solid var(--border); border-radius: 999px; cursor: pointer; }
+.tc-step:hover { border-color: var(--accent); color: var(--accent); }
+.tc-step.gate { font-weight: 600; }
+/* The primary run-action pill (Start/Continue investigation) — a FILLED accent pill so it reads as the
+   action, distinct from the outline tradecraft pills. Click = the typed "start investigation" affirmative. */
+.tc-start { margin: 0; padding: 3px 11px; font-size: 11px; line-height: 1.4; font-weight: 600; background: var(--accent); color: var(--on-accent); border: 1px solid var(--accent); border-radius: 999px; cursor: pointer; }
+.tc-start:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.tc-start:disabled { opacity: .5; cursor: default; }
+.tc-scope { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); }
+.tc-scope[hidden] { display: none; }
+.tc-scope input { margin: 0; padding: 7px 10px; font-size: 13px; }
+.tc-scope-row { display: flex; gap: 6px; }
+.tc-scope-row button { margin: 0; padding: 6px 12px; font-size: 13px; }
+/* chat-dock-readable: flex-shrink:0 so the input/Stop row keeps its height and stays reachable when the
+   scroller is tall (it never gets squeezed out of the dock). */
+/* chat-feels-like-a-product: the composer is a rounded pill wrapping the attach + input + send, so it
+   reads as one input surface, not three loose controls. 44px min touch target on the buttons. */
+.chat-form { display: flex; gap: 6px; align-items: center; margin-top: 8px; padding: 5px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); flex-shrink: 0; transition: border-color .15s ease, box-shadow .15s ease; }
+.chat-form:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(15,118,110,.12); }
+.chat-form input#chat-input { flex: 1; min-width: 0; margin: 0; padding: 8px 8px; font-size: 14px; border: none; background: transparent; }
+.chat-form input#chat-input:focus { outline: none; box-shadow: none; }
+.chat-form button#chat-send { border-radius: 999px; min-height: 36px; }
+.chat-form button.chat-attach { border: none; background: transparent; font-size: 16px; padding: 6px 8px; }
+/* ch-lifecycle-cue (controls-honesty / sp-bacfd8f0): the lifecycle strip prefills #chat-input but gave
+   no visible feedback, so a click read as a dead no-op. flashPrefill() in app.ts adds .lc-prefilled on
+   click (a smoke asserts it); it clears on the first real keystroke. A ring + soft fill + one pulse make
+   the registered click unmistakable. */
+.chat-form input#chat-input.lc-prefilled { box-shadow: 0 0 0 2px var(--accent); background: var(--accent-wash); animation: lc-prefill-pulse .5s ease-out 1; }
+@keyframes lc-prefill-pulse { 0% { box-shadow: 0 0 0 0 rgba(15,118,110,.45); } 100% { box-shadow: 0 0 0 2px var(--accent); } }
+.chat-form button { margin: 0; padding: 8px 13px; font-size: 14px; }
+.chat-form button.chat-stop[hidden] { display: none; }
+/* interrupt-redirect (founder 2026-07-03): the old Stop was a faint ghost button that read as
+   undiscoverable during a run ("no way to stop the task"). Make it a filled, high-contrast halt control
+   that stands out from Send — a smoke asserts it is visible + clickable while a run is live. */
+.chat-form button.chat-stop { border-radius: 999px; min-height: 36px; font-weight: 600; color: #fff;
+  background: #B91C1C; border: 1px solid #991B1B; }
+.chat-form button.chat-stop::before { content: "\25A0  "; }
+.chat-form button.chat-stop:hover { background: #991B1B; }
+.chat-form button.chat-stop { padding: 8px 11px; font-size: 13px; }
+
+/* node / edge / runs cards folded into the thread */
+
+.nd-meta { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 0; font-size: 13px; }
+.nd-meta dt { color: var(--muted); }
+.nd-meta dd { margin: 0; color: var(--ink); word-break: break-word; }
+button.dig { margin-top: 10px; padding: 6px 12px; font-size: 13px; }
+button.dig:disabled { background: var(--bg-soft); color: var(--muted); cursor: default; }
+
+/* F8 (video-review 2026-06-25): OSINT pivot links were UNSTYLED — inline <a>s with no gap rendered as one
+   run-on white blob ("ShodanAbuseIPDBCensysVirusTotal" — the founder's "white things"). Render each as a
+   distinct, obviously-clickable chip with an external-link cue so the analyst can see + use them. */
+.nd-pivots { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.nd-pivots .dlabel { flex-basis: 100%; margin: 0 0 2px; }
+.nd-pivot-link { display: inline-flex; align-items: center; padding: 3px 9px; font-size: 12px; line-height: 1.4;
+  color: var(--accent-ink); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px;
+  text-decoration: none; white-space: nowrap; }
+.nd-pivot-link:hover { border-color: var(--accent-ink); background: var(--card); }
+.nd-pivot-link::after { content: " \2197"; font-size: 10px; opacity: .6; margin-left: 3px; }
+
+/* auth-gate-nav (founder 2026-06-25): while the vault is locked / absent, the left nav routes are NOT reachable
+   (render() shows the sign-in gate instead). The nav used to stay fully styled, so clicking it did nothing and
+   read as broken ("I can't click the items on the left when I start the tool"). Show it as DISABLED so the order
+   is obvious — sign in first (centered card), THEN the OSINT + API key pages open. Cleared the moment you unlock. */
+body.vault-locked [data-route] { opacity: 0.4; pointer-events: none; cursor: not-allowed; }
+
+/* ---- left-nav pages (router views): Entities / Runs / Deliverables / Cross-case / info pages ---- */
+#app.page-view { flex: 1; min-height: 0; overflow-y: auto; width: 100%; max-width: 1100px; margin: 0 auto; padding: 20px 20px 48px; }
+.pg-head { margin-bottom: 16px; }
+.pg-title { font-family: var(--font-display, inherit); font-size: 22px; font-weight: 600; color: var(--ink); margin: 0; }
+.pg-sub { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+.pg-body { display: flex; flex-direction: column; gap: 8px; }
+.pg-empty { color: var(--faint); font-size: 14px; padding: 24px 0; }
+/* sf-activity: the /activity feed — analyst chip · action · entity/report · detail · time, reverse-chron */
+.act-count { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+.act-list { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
+.act-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; font-size: 13px; color: var(--ink); border-top: 1px solid var(--border); }
+.act-row:first-child { border-top: none; }
+.act-analyst { font-family: var(--font-mono, monospace); color: var(--accent-ink); font-size: 12px; flex-shrink: 0; }
+.act-action { color: var(--ink); }
+.act-entity, .act-report { font-family: var(--font-mono, monospace); color: var(--ink); }
+.act-detail { color: var(--muted); font-size: 11px; }
+.act-when { margin-left: auto; color: var(--faint); font-size: 12px; font-family: var(--font-mono, monospace); flex-shrink: 0; }
+/* sf-sources: the Docs/Sources toggle + the Sources gallery (grid/table + filters + entity chips) */
+.inbox-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+.src-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.src-filter { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--ink); font-size: 13px; }
+.src-count { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+.src-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.src-card { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 12px; }
+.src-card-title { font-weight: 600; color: var(--ink); font-size: 13px; word-break: break-word; }
+.src-card-meta { color: var(--muted); font-size: 12px; margin: 4px 0 8px; }
+.src-chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.src-chip { font-size: 11px; padding: 1px 7px; border-radius: 3px; cursor: pointer; border: 0; }
+.src-chip-more { font-size: 11px; color: var(--faint); }
+.src-active { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.src-active-chip { font-size: 12px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--accent); background: rgba(15,118,110,0.08); color: var(--accent-ink); cursor: pointer; }
+.src-table { border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.src-row { display: grid; grid-template-columns: 2fr 1fr 1fr 3fr; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--border); font-size: 13px; align-items: center; }
+.src-row:first-child { border-top: none; }
+.src-row-head { font-weight: 600; color: var(--muted); font-size: 12px; background: var(--bg-soft); }
+.src-cell { word-break: break-word; }
+/* sf-exports: the /exports download cards */
+.exp-hint { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.exp-card { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 14px 16px; margin-bottom: 10px; }
+.exp-title { font-weight: 600; color: var(--ink); font-size: 14px; }
+.exp-desc { color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
+.exp-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+/* sf-cases: the /cases switcher */
+.case-new { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.case-name-input { flex: 1; min-width: 200px; }
+.case-count { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+.case-list { display: flex; flex-direction: column; gap: 8px; }
+.case-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); }
+.case-row.case-active { border-color: var(--accent); background: rgba(15,118,110,0.05); }
+.case-main { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.case-name { font-weight: 600; color: var(--ink); }
+.case-date { color: var(--faint); font-size: 12px; font-family: var(--font-mono, monospace); }
+/* sf-alerts: severity-tier cards + ack controls */
+.alert-controls { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.alert-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.alert-toggle-cb { width: auto; margin: 0; }
+.alert-count { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+.alert-card { border: 1px solid var(--border); border-left: 3px solid var(--line); border-radius: 8px; background: var(--card); padding: 10px 14px; margin-bottom: 8px; }
+.alert-card.sev-high { border-left-color: var(--err); }
+.alert-card.sev-medium { border-left-color: rgb(var(--c-sev-med)); }
+.alert-card.acked { opacity: 0.6; }
+.alert-head { display: flex; align-items: center; gap: 8px; }
+.alert-sev { font: 600 10px/1.4 "Inter", sans-serif; padding: 1px 6px; border-radius: 3px; letter-spacing: .04em; }
+.alert-sev.sev-high { background: rgba(185,28,28,.10); color: var(--err); }
+.alert-sev.sev-medium { background: rgba(180,83,9,.12); color: rgb(var(--c-sev-med)); }
+.alert-type { font-size: 11px; color: var(--muted); font-family: var(--font-mono, monospace); }
+.alert-name { font-weight: 600; color: var(--ink); font-size: 14px; }
+.alert-row { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.alert-reason { color: var(--faint); font-size: 12px; margin-top: 2px; }
+.alert-acked { display: inline-block; margin-top: 6px; font-size: 12px; color: var(--accent); }
+/* sf-report-builder: the /report builder form + the branded print-ready deliverable (.report-doc).
+   Ported from report.html's <style>, scoped + accent-via-CSS-var (--report-accent, hex-sanitized). */
+.report-form { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 16px; margin: 12px 0 18px; }
+.rf-field { display: flex; flex-direction: column; gap: 4px; }
+.rf-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.rf-input { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: var(--card); }
+.rf-color { width: 56px; height: 36px; padding: 2px; border: 1px solid var(--border); border-radius: 8px; }
+.rf-sections { display: flex; flex-direction: column; gap: 4px; }
+.rf-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); }
+.rf-check .rf-sec { width: auto; }
+.report-print { align-self: flex-end; }
+.report-doc { --report-accent: #1e3a5f; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 0.7in 0.65in; box-shadow: 0 2px 14px rgba(0,0,0,.08); max-width: 8.5in; margin: 0 auto; color: #16181d; line-height: 1.55; }
+.report-doc h1, .report-doc h2, .report-doc h3 { font-family: 'Space Grotesk', Georgia, serif; line-height: 1.2; }
+.rep-cover { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 28px; }
+.rep-logo { max-height: 64px; margin-bottom: 24px; }
+.rep-eyebrow { text-transform: uppercase; letter-spacing: .18em; font-size: 12px; font-weight: 600; color: var(--report-accent); }
+.rep-cover-title { font-size: 34px; margin: 12px 0 6px; font-weight: 700; }
+.rep-client { font-size: 18px; color: var(--muted); }
+.rep-rule { height: 4px; width: 80px; background: var(--report-accent); margin: 22px 0; }
+.rep-meta { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
+.rep-confidential { margin-top: 24px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.rep-section { margin: 24px 0; }
+.rep-section-title { font-size: 21px; border-bottom: 2px solid var(--report-accent); padding-bottom: 6px; margin: 0 0 14px; }
+.rep-lead { color: var(--muted); font-size: 13px; margin: -6px 0 14px; }
+.rep-kpis { display: flex; gap: 12px; margin: 14px 0; }
+.rep-kpi { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.rep-kpi-n { font-size: 24px; font-weight: 700; font-family: 'Space Grotesk', serif; }
+.rep-kpi-l { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.rep-actor { border: 1px solid var(--line); border-left: 4px solid var(--report-accent); border-radius: 6px; padding: 12px 14px; margin: 10px 0; }
+.rep-actor-head { display: flex; align-items: center; gap: 8px; }
+.rep-actor-name { font-size: 16px; font-weight: 600; font-family: 'Space Grotesk', serif; }
+.rep-actor-why { color: var(--muted); font-size: 13px; margin-top: 5px; }
+.rep-dossier { page-break-inside: avoid; border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; margin: 12px 0; }
+.rep-dossier-name { margin: 0; font-size: 17px; }
+.rep-dossier-src { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.rep-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+.rep-table th { text-align: left; background: var(--bg-soft); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; font-size: 11px; padding: 7px 9px; border-bottom: 2px solid var(--line); }
+.rep-table td { padding: 7px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.rep-num { text-align: right; font-variant-numeric: tabular-nums; }
+.rep-md { font-size: 13.5px; }
+.rep-p { font-size: 13.5px; margin: .5em 0; color: var(--ink); }
+.rep-empty { color: var(--muted); font-style: italic; font-size: 13px; }
+.rep-footer { margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+/* print: only the .report-doc deliverable prints (hide the app chrome + the builder form) */
+@media print {
+  aside, .report-form, #status, [x-data] > .flex > .sticky { display: none !important; }
+  .report-doc { border: none; box-shadow: none; border-radius: 0; max-width: none; margin: 0; padding: 0; }
+  .rep-section { page-break-before: always; }
+  .rep-cover { page-break-after: always; }
+  @page { margin: 0.7in; }
+}
+.pg-chip { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--bg-soft); color: var(--muted); border: 1px solid var(--border); }
+.pg-chip.ok { color: var(--accent-ink); border-color: var(--accent); background: rgba(15,118,110,0.08); }
+.pg-chip.warn { color: rgb(var(--c-sev-med)); border-color: rgb(var(--c-sev-med) / 0.4); background: rgb(var(--c-sev-med) / 0.12); }
+/* Capabilities catalog (/capabilities) — read-only OSINT toolkit manifest */
+.cap-byo { font-size: 13px; color: var(--ink); margin: 0 0 12px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: 10px; background: rgba(15,118,110,0.06); }
+.cap-key { font-size: 11px; color: rgb(var(--c-sev-med)); margin-top: 2px; }
+.cap-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 16px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-soft); }
+/* free/pro split: the Full-tool page contact bubble — a centered upsell CTA that opens the user's email client. */
+.ft-contact { margin: 24px 0 8px; padding: 20px; text-align: center; border: 1px solid var(--accent); border-radius: 14px; background: var(--accent-wash); }
+.ft-contact-title { font-size: 16px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
+.ft-contact-body { font-size: 13px; color: var(--ink); margin: 0 0 14px; }
+.ft-contact .pg-btn { text-decoration: none; display: inline-block; }
+.cap-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.cap-legend-txt { font-size: 12px; color: var(--muted); }
+.cap-group { border: 1px solid var(--border); border-radius: 12px; background: var(--card); padding: 14px 16px; margin-bottom: 12px; }
+.cap-group-head { display: flex; align-items: center; gap: 8px; }
+.cap-group-title { font-size: 15px; font-weight: 600; color: var(--ink); margin: 0; }
+.cap-group-blurb { font-size: 12px; color: var(--muted); margin: 4px 0 12px; }
+.cap-list { display: flex; flex-direction: column; gap: 2px; }
+.cap-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--border); }
+.cap-row:first-child { border-top: none; }
+.cap-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cap-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+.cap-detail { font-size: 12px; color: var(--muted); }
+.cap-row .pg-chip { flex: 0 0 auto; }
+.pg-btn { font-size: 13px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--ink); cursor: pointer; }
+.pg-btn:hover { background: var(--bg-soft); }
+/* ux (codex): a disabled action must LOOK disabled — muted + non-pointer, no hover affordance. */
+.pg-btn:disabled { opacity: 0.5; cursor: not-allowed; color: var(--faint); }
+.pg-btn:disabled:hover { background: var(--card); }
+/* ux (brief §Cases #16): the header case-switcher dropdown items. */
+.case-menu-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: left; padding: 6px 12px; font-size: 13px; background: transparent; border: none; color: var(--ink); cursor: pointer; }
+.case-menu-item:hover { background: var(--bg-soft); }
+.case-menu-item.active { color: var(--accent-ink); font-weight: 500; }
+.case-menu-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.case-menu-check { color: var(--accent); font-size: 12px; flex-shrink: 0; }
+.case-menu-empty { padding: 6px 12px; font-size: 12px; color: var(--faint); }
+.pg-btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.pg-btn.primary:hover { background: var(--accent-hover); }
+.pg-btn.danger { color: var(--err); border-color: var(--err); background: var(--card); }
+.pg-btn.danger:hover { background: rgba(185,28,28,0.08); }
+
+/* reports & intake (cl-ui): a column layout with gaps so the file row, paste box, and buttons
+   stack with room — the textarea was unstyled (browser-default ~2 rows) and the button overlapped. */
+.intake-card { display: flex; flex-direction: column; gap: 12px; max-width: 760px; }
+.intake-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.intake-paste { width: 100%; min-height: 132px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font: inherit; color: var(--ink); background: var(--card); resize: vertical; box-sizing: border-box; }
+.intake-card > .pg-btn { align-self: flex-start; }
+.intake-out { margin-top: 4px; }
+
+/* enrich page (en-wire) */
+.enr-h2 { font-size: 13px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; margin: 14px 0 4px; }
+.enr-row { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.enr-name { font-weight: 600; color: var(--ink); font-size: 14px; }
+.enr-ctrl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.enr-key, .enr-target { flex: 1; min-width: 180px; font-size: 13px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-soft); color: var(--ink); }
+.enr-blocked { flex-direction: row; align-items: center; justify-content: space-between; opacity: .7; }
+.enr-blocked-note { color: var(--faint); font-size: 12px; margin: 0 0 4px; }
+
+/* enrich page: stats header + provider cards + recent-runs table + run modal (1:1 with the original) */
+.enr-stats { display: flex; gap: 8px; flex-wrap: wrap; margin: 2px 0 6px; }
+.enr-stat { font-size: 12px; color: var(--muted); font-family: "IBM Plex Mono", monospace; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+.enr-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 8px; }
+@media (min-width: 900px) { .enr-grid { grid-template-columns: 1fr 1fr; } }
+.enr-card { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.enr-card-off { opacity: .72; }
+.enr-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.enr-card-title { display: flex; align-items: center; gap: 8px; }
+.enr-cat { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; }
+.enr-desc { color: var(--muted); font-size: 12px; }
+.enr-meta { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--faint); font-family: "IBM Plex Mono", monospace; }
+.enr-docs { color: var(--accent); text-decoration: none; }
+.enr-docs:hover { color: var(--accent-hover); text-decoration: underline; }
+.enr-keypanel { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.enr-keytop { display: flex; align-items: center; justify-content: space-between; }
+.enr-keylabel { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); }
+.enr-keysrc { font-size: 11px; color: var(--faint); }
+.enr-keysrc.ok { color: var(--accent); }
+.enr-keysrc.muted { color: var(--faint); }
+.enr-show { min-width: 48px; }
+.enr-clear { color: var(--err); border-color: var(--err); }
+.enr-clear:hover { background: rgb(var(--c-sev-high) / 0.10); }
+.enr-keymsg { font-size: 11px; color: var(--muted); min-height: 0; }
+.enr-keymsg.ok { color: var(--accent); }
+.enr-keymsg.warn { color: var(--err); }
+.enr-run { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.enr-lastresult { flex-basis: 100%; font-size: 12px; color: var(--muted); }
+.enr-lastresult.ok { color: var(--accent); }
+.enr-lastresult.warn { color: var(--err); }
+.enr-runs { border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.enr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.enr-table thead { background: var(--bg-soft); }
+.enr-table th { text-align: left; padding: 8px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--faint); font-weight: 600; }
+.enr-table td { padding: 8px 12px; border-top: 1px solid var(--border); color: var(--ink); }
+.enr-run-row { cursor: pointer; }
+.enr-run-row:hover td { background: var(--bg-soft); }
+.enr-td-num, .enr-td-prov, .enr-td-target, .enr-td-when { font-family: "IBM Plex Mono", monospace; font-size: 12px; }
+.enr-td-num, .enr-td-when { color: var(--faint); }
+.enr-empty { text-align: center; padding: 18px; color: var(--faint); }
+.enr-modal { position: fixed; inset: 0; background: rgba(26,26,25,0.6); z-index: 60; align-items: center; justify-content: center; padding: 24px; }
+.enr-modal-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; max-width: 720px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(28,25,23,0.25); }
+.enr-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.enr-modal-title { font-family: "IBM Plex Mono", monospace; font-size: 14px; font-weight: 600; color: var(--ink); }
+.enr-modal-sub { font-size: 12px; color: var(--muted); }
+.enr-modal-close { background: transparent; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; padding: 2px 8px; }
+.enr-modal-close:hover { color: var(--ink); }
+.enr-modal-body { padding: 14px 16px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.enr-modal-empty { color: var(--faint); font-size: 13px; }
+.enr-finding { border: 1px solid var(--border); border-radius: 8px; background: var(--bg-soft); padding: 8px 10px; }
+.enr-finding-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.enr-finding-status { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
+.enr-finding-entity { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink); word-break: break-all; }
+
+/* sf-deliverables: the /synthesis-faithful surface — regen affordance + stale banner */
+.del-regen { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.del-regen-hint { font-size: 13px; color: var(--muted); flex: 1; min-width: 240px; }
+.del-regen-status { font-size: 13px; min-height: 18px; flex-basis: 100%; }
+.del-regen-status.ok { color: var(--accent); }
+.del-regen-status.err { color: var(--err); }
+.del-stale { display: flex; align-items: flex-start; gap: 10px; background: rgba(245,158,11,0.10); border: 1px solid rgba(245,158,11,0.40); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+.del-stale-icon { color: rgb(var(--c-sev-med)); font-size: 18px; line-height: 1; }
+.del-stale-title { font-weight: 600; color: rgb(var(--c-sev-med)); font-size: 13px; }
+.del-stale-body { color: var(--ink); font-size: 13px; margin-top: 2px; }
+
+/* sf-reports: the reports table + inline per-report detail */
+.rep-table-head { font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 15px; color: var(--ink); margin: 18px 0 2px; }
+.rep-table-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.rep-table { border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.rep-item { border-bottom: 1px solid var(--border); }
+.rep-item:last-child { border-bottom: 0; }
+.rep-row { width: 100%; display: grid; grid-template-columns: 2.4fr 1fr 1fr 0.7fr 1fr; align-items: center; gap: 10px; padding: 9px 14px; background: none; border: 0; cursor: pointer; text-align: left; font-size: 13px; color: var(--ink); }
+.rep-row:hover { background: var(--bg-soft); }
+.rep-row-head { cursor: default; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--faint); background: var(--bg-soft); }
+.rep-row-head:hover { background: var(--bg-soft); }
+.rep-cell.rep-title { font-weight: 600; word-break: break-word; }
+.rep-cell.rep-ents, .rep-cell.rep-ing, .rep-cell.rep-inv { color: var(--muted); }
+.rep-detail { padding: 10px 14px 14px; border-top: 1px solid var(--border); background: var(--bg-soft); display: flex; flex-direction: column; gap: 6px; }
+.rep-detail-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.rep-meta-item { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 1px 7px; }
+.rep-ent-list, .rep-ovr-list { display: flex; flex-direction: column; gap: 3px; }
+.rep-ent { width: 100%; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; background: none; border: 0; cursor: pointer; text-align: left; padding: 3px 0; font-size: 12px; color: var(--ink); }
+.rep-ent:hover { color: var(--accent); }
+.rep-ent-name { font-weight: 600; word-break: break-all; }
+.rep-ovr { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.rep-ovr-ent { font-weight: 600; color: var(--ink); }
+.rep-notes { width: 100%; font-family: inherit; font-size: 13px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--ink); resize: vertical; }
+.rep-notes-status { font-size: 12px; min-height: 16px; color: var(--muted); }
+.rep-notes-status.ok { color: var(--accent); }
+.rep-notes-status.err { color: var(--err); }
+
+/* entity rows */
+.ent-row, .run-card, .del-card { border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.ent-top, .run-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: none; border: 0; cursor: pointer; text-align: left; }
+.ent-top:hover, .run-head:hover { background: var(--bg-soft); }
+.ent-name, .run-obj, .del-obj { font-weight: 600; color: var(--ink); font-size: 14px; word-break: break-all; }
+.ent-meta, .run-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.ent-detail, .run-detail { padding: 8px 14px 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
+.ent-dossier-head { font-weight: 600; color: var(--ink); font-size: 13px; }
+.ent-dossier-line, .run-finding { color: var(--muted); font-size: 12px; }
+.ent-conns-head { margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
+.ent-conn { color: var(--muted); font-size: 12px; word-break: break-all; }
+/* sf-bridges: cross-cluster bridge entity cards */
+.br-card { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+.br-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.br-name { font-weight: 600; color: var(--ink); font-size: 14px; word-break: break-all; }
+.br-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+.br-clusters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+/* sf-focus: "where to look first" — the gaps callout, the score-ranked items, the methodology block */
+.fc-gaps { border: 1px solid rgb(var(--c-sev-med) / 0.4); border-radius: 10px; background: rgb(var(--c-sev-med) / 0.12); padding: 10px 14px; margin-bottom: 4px; }
+.fc-gaps-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgb(var(--c-sev-med)); margin-bottom: 6px; }
+.fc-gaps-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.fc-gap { display: flex; gap: 8px; align-items: flex-start; }
+.fc-gap-sev { font-size: 10px; text-transform: uppercase; padding: 1px 6px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; border: 1px solid var(--border); color: var(--muted); background: var(--bg-soft); }
+.fc-gap-high { color: rgb(var(--c-sev-high)); border-color: rgb(var(--c-sev-high) / 0.4); background: rgba(185,28,28,0.08); }
+.fc-gap-medium { color: rgb(var(--c-sev-med)); border-color: rgb(var(--c-sev-med) / 0.4); background: rgba(146,64,14,0.08); }
+.fc-gap-low { color: var(--muted); }
+.fc-gap-main { display: flex; flex-direction: column; gap: 2px; }
+.fc-gap-title { color: var(--ink); font-size: 13px; }
+.fc-gap-action { color: var(--muted); font-size: 12px; }
+.fc-gap-ents { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.fc-gap-ent { font-size: 11px; font-family: "IBM Plex Mono", monospace; padding: 1px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-soft); color: var(--ink); cursor: pointer; word-break: break-all; }
+.fc-gap-ent:hover { border-color: var(--accent); }
+.fc-list { border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.fc-list-head { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--bg-soft); }
+.fc-item { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
+.fc-item:last-child { border-bottom: none; }
+.fc-item-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fc-rank { font-size: 12px; font-family: "IBM Plex Mono", monospace; color: var(--muted); }
+.fc-name { font-weight: 600; color: var(--ink); font-size: 14px; word-break: break-all; }
+.fc-score { font-size: 12px; font-family: "IBM Plex Mono", monospace; color: var(--muted); margin-left: auto; }
+.fc-why { font-size: 13px; color: var(--ink); line-height: 1.45; }
+.fc-clusters { display: flex; gap: 6px; flex-wrap: wrap; }
+.fc-rels { display: flex; gap: 6px; flex-wrap: wrap; }
+.fc-rel { font-size: 10px; padding: 1px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-soft); display: inline-flex; gap: 4px; align-items: center; }
+.fc-rel-type { color: var(--accent-ink); }
+.fc-rel-dir { color: var(--muted); }
+.fc-rel-other { font-family: "IBM Plex Mono", monospace; color: var(--ink); word-break: break-all; }
+.fc-method { margin-top: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); overflow: hidden; }
+.fc-method-sum { padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink); }
+.fc-method-body { padding: 10px 14px; border-top: 1px solid var(--border); font-size: 13px; color: var(--ink); line-height: 1.5; display: flex; flex-direction: column; gap: 10px; }
+.fc-method-formula { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink); }
+.fc-method-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
+.fc-method-seed { font-size: 12px; }
+.fc-empty { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 20px; text-align: center; }
+.fc-empty-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.fc-empty-sub { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.fc-empty-flow { text-align: left; max-width: 460px; margin: 0 auto; padding-left: 20px; font-size: 13px; color: var(--ink); display: flex; flex-direction: column; gap: 4px; }
+.fc-empty-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+/* ca-correlate (INC-2): alias "also known as" links on entity detail */
+.ent-aka-head { margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .03em; }
+.ent-aka-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.ent-aka { font-size: 12px; color: var(--ink); background: var(--soft, rgba(127,127,127,.12)); border-radius: 4px; padding: 1px 6px; word-break: break-all; }
+
+/* r1-page: the per-run trail (what it did / found / bottom line) inside an expanded run card */
+.run-section-head { margin-top: 8px; font-size: 11px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .08em; }
+.run-muted { color: var(--faint); font-size: 12px; font-style: italic; margin: 2px 0; }
+.run-trail { border: 1px solid var(--border); border-radius: 8px; background: var(--bg-soft); padding: 8px 10px; margin-top: 2px; }
+.trail-step { position: relative; padding-left: 18px; padding-bottom: 8px; }
+.trail-step:before { content: ''; position: absolute; left: 4px; top: 15px; bottom: -2px; width: 2px; background: var(--border); }
+.trail-step:last-child { padding-bottom: 0; }
+.trail-step:last-child:before { display: none; }
+.trail-dot { position: absolute; left: 0; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); box-sizing: border-box; }
+.trail-step.reasoning .trail-dot { border-color: var(--faint); }
+.trail-tool-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.trail-n { font-size: 10px; color: var(--faint); font-family: "IBM Plex Mono", monospace; }
+.trail-tool { font-size: 10px; font-family: "IBM Plex Mono", monospace; padding: 1px 5px; border: 1px solid var(--border); border-radius: 4px; background: var(--card); color: var(--accent-ink); }
+.trail-tool.err { color: rgb(var(--c-sev-med)); border-color: rgb(var(--c-sev-med) / 0.4); }
+.trail-input { font-size: 12px; font-family: "IBM Plex Mono", monospace; color: var(--ink); word-break: break-all; }
+.trail-result { font-size: 11px; font-family: "IBM Plex Mono", monospace; color: var(--muted); margin-top: 1px; word-break: break-all; }
+.trail-reason { display: flex; gap: 6px; align-items: baseline; }
+.trail-text { font-size: 13px; color: var(--ink); line-height: 1.45; }
+.trail-trunc { font-size: 10px; color: var(--faint); font-style: italic; }
+.run-finding-prov { color: var(--faint); font-size: 11px; font-family: "IBM Plex Mono", monospace; }
+.run-bottomline { margin-top: 10px; background: rgba(15,118,110,0.06); border: 1px solid rgba(15,118,110,0.25); border-radius: 8px; padding: 8px 10px; }
+.run-bottomline-label { font-size: 10px; font-weight: 600; color: var(--accent-ink); text-transform: uppercase; letter-spacing: .08em; }
+.run-bottomline-text { font-size: 13px; color: var(--ink); line-height: 1.45; margin-top: 2px; }
+
+/* sf-findings: the full Findings-view depth — Trail|Findings toggle, rich finding rows, discovered-asset
+   rollup, and deterministic Next-moves pivots. Reuses the role-* pill colors for the confidence pill. */
+.run-view-toggle { display: inline-flex; gap: 2px; padding: 2px; background: var(--bg-soft); border-radius: 8px; margin: 4px 0 2px; }
+.run-view-btn { font: 500 12px/1 "Inter", sans-serif; padding: 5px 12px; border-radius: 6px; border: 0; background: none; color: var(--muted); cursor: pointer; }
+.run-view-btn.active { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.run-finding-list { display: flex; flex-direction: column; }
+.run-finding { padding: 8px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 3px; }
+.run-finding:first-child { border-top: 0; }
+.run-finding-title { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.run-finding-name { font-size: 13px; font-weight: 500; color: var(--ink); word-break: break-all; }
+.run-finding-summary { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.run-finding-state { font-size: 11px; font-weight: 600; }
+.run-finding-state.on-graph { color: rgb(var(--c-conf-high)); }
+.run-finding-state.lead { color: var(--faint); font-weight: 500; font-style: italic; }
+.run-asset-list { display: flex; flex-direction: column; }
+.run-asset { padding: 7px 0; border-top: 1px solid var(--border); }
+.run-asset:first-child { border-top: 0; }
+.run-asset-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.run-asset-name { font: 500 13px/1.3 "IBM Plex Mono", monospace; color: var(--ink); word-break: break-all; }
+.run-asset-type { font-size: 10px; padding: 1px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-soft); color: var(--muted); }
+.run-asset-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; }
+.run-asset-badge.on-graph { color: rgb(var(--c-conf-high)); background: rgba(22,163,74,.12); }
+.run-asset-badge.surfaced { color: var(--muted); background: var(--bg-soft); }
+.run-asset-badge.chased { color: var(--accent-ink); background: rgba(15,118,110,.10); }
+.run-asset-badge.not-chased { color: rgb(var(--c-sev-med)); background: rgb(var(--c-sev-med) / 0.12); }
+.run-asset-meta { font-size: 11px; color: var(--faint); margin-top: 1px; }
+.run-pivots { margin-top: 6px; }
+.run-pivot-list { display: flex; flex-direction: column; gap: 2px; }
+.run-pivot { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.run-pivot-entity { font: 500 12px/1.3 "IBM Plex Mono", monospace; color: var(--accent-ink); word-break: break-all; }
+.run-pivot.blocked .run-pivot-entity { color: var(--muted); }
+.run-pivot-why { font-size: 12px; color: var(--muted); }
+.run-pivot.blocked .run-pivot-why { color: rgb(var(--c-sev-med)); }
+
+/* deliverables */
+.del-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; }
+/* sf-deliverables: the brief body is now a RENDERED-markdown div (not the old raw <pre>) — normal flow
+   (no pre-wrap gaps between blocks), full height (no 320px cap), inherit font size. The .markdown child
+   rules style headings/tables/lists/code/links. */
+.del-body { padding: 12px 14px; border-top: 1px solid var(--border); color: var(--ink); word-break: break-word; }
+/* sf-briefs: grouped relatedness viewer (inline-expand cards) */
+.brief-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: none; border: 0; cursor: pointer; text-align: left; }
+.brief-head:hover { background: var(--bg-soft); }
+.brief-head-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.brief-toggle { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+.brief-meta { padding: 0 14px 10px; display: flex; flex-direction: column; gap: 3px; }
+.brief-meta { font-size: 12px; color: var(--muted); }
+.brief-badge { font-size: 10px; text-transform: uppercase; letter-spacing: .03em; padding: 1px 7px; border-radius: 999px; }
+.brief-badge-strong { background: rgba(16,185,129,0.15); color: rgb(var(--c-conf-high)); }
+.brief-badge-weak { background: rgba(245,158,11,0.15); color: rgb(var(--c-sev-med)); }
+.brief-badge-disjoint { background: rgba(239,68,68,0.15); color: rgb(var(--c-sev-high)); }
+.brief-badge-unknown { background: rgba(127,127,127,0.15); color: var(--muted); }
+
+/* cross-case */
+.xc-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 10px 14px; }
+.xc-runs { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; margin-top: 4px; }
+.xc-run { font-size: 11px; color: var(--muted); background: var(--bg-soft); border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px; word-break: break-all; }
+
+/* sidebar active state set by app.ts highlightNav() */
+.nav-active { border-left-color: var(--accent) !important; background: rgba(15,118,110,0.10); color: var(--accent) !important; font-weight: 500; }
+
+/* pf-process: the Process pipeline panel on /reports (mirrors the server _process_panel.html) */
+.proc-panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin: 0 0 16px; max-width: 760px; }
+.proc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.proc-titlewrap { min-width: 0; }
+.proc-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.proc-hint { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+.proc-schema { font-size: 12px; color: var(--accent); margin-top: 4px; font-weight: 500; }
+.proc-btn { white-space: nowrap; flex-shrink: 0; }
+.proc-btn:disabled { opacity: .5; cursor: not-allowed; }
+.proc-progress { margin-top: 12px; }
+.proc-progress:empty { margin-top: 0; }
+.proc-meta { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.proc-pct { font-variant-numeric: tabular-nums; }
+.proc-bar { height: 6px; width: 100%; background: var(--bg-soft); border-radius: 999px; overflow: hidden; }
+.proc-bar-fill { height: 100%; background: var(--accent); transition: width .4s ease; }
+.proc-steps { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.proc-step { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.proc-step-icon { width: 16px; text-align: center; flex-shrink: 0; color: var(--faint); }
+.proc-step-label { color: var(--muted); }
+.proc-step.proc-running .proc-step-icon, .proc-step.proc-ok .proc-step-icon { color: var(--accent); }
+.proc-step.proc-running .proc-step-label, .proc-step.proc-ok .proc-step-label { color: var(--ink); }
+.proc-step.proc-skipped .proc-step-icon, .proc-step.proc-skipped .proc-step-label { color: var(--muted); }
+.proc-step.proc-error .proc-step-icon, .proc-step.proc-error .proc-step-label { color: rgb(var(--c-sev-high)); }
+.proc-log-label { font-size: 12px; color: var(--muted); margin: 12px 0 4px; }
+.proc-log { height: 150px; overflow: auto; border: 1px solid var(--border); background: var(--bg-soft); border-radius: 8px; padding: 8px 12px; font-family: "IBM Plex Mono", monospace; font-size: 12px; line-height: 1.6; color: var(--muted); white-space: pre-wrap; }
+.proc-log-line { word-break: break-word; }
+.proc-err { margin-top: 10px; color: rgb(var(--c-sev-high)); font-size: 13px; }
+.proc-schema-detail { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.proc-tax-summary { font-size: 13px; color: var(--ink); margin-bottom: 8px; line-height: 1.5; }
+.proc-tax-row { display: flex; gap: 8px; align-items: baseline; margin: 5px 0; font-size: 12px; }
+.proc-tax-label { flex-shrink: 0; width: 88px; color: var(--faint); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.proc-tax-vals { display: flex; flex-wrap: wrap; gap: 5px; }
+.proc-tax-chip { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+.proc-tax-note { color: var(--muted); line-height: 1.5; }
+
+/* a11y: honor the OS "reduce motion" setting — neutralize the sidebar slide + every
+   transition/animation for vestibular users (ui-ux-pro-max reduced-motion rule). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ux-polish (Goal 6 / brief): the additive UX affordances. */
+.run-trail-hint { color: var(--accent-ink); font-size: 12px; margin-left: 8px; cursor: pointer; }
+.ent-legend { color: var(--faint); font-size: 11px; margin: 0 0 10px; }
+.del-advanced { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.del-divider-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); margin-bottom: 6px; }
+
+/* ux-rail (nav overhaul 1c): the persistent lifecycle rail (Intake→Investigate→Deliver→Portfolio).
+   .lc-stage buttons reset the global button{background:accent} so they read as quiet chips, not
+   filled-teal buttons; the current stage is accented, done stages carry a teal ✓. */
+#lifecycle-rail { font-size: 12px; }
+.lc-sep { color: var(--faint); margin: 0 2px; user-select: none; }
+.lc-stage { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 3px 9px;
+  background: transparent; color: var(--muted); border: 1px solid transparent; border-radius: 999px;
+  font-weight: 500; font-size: 12px; white-space: nowrap; cursor: pointer; }
+.lc-stage:hover { background: var(--bg-soft); color: var(--ink); }
+.lc-stage .lc-mark { display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 999px; font-size: 10px; font-weight: 700;
+  background: var(--bg-soft); color: var(--faint); }
+.lc-stage.lc-done .lc-mark { background: var(--accent); color: var(--on-accent); }
+.lc-stage.lc-current { color: var(--accent-ink); border-color: var(--accent); background: var(--bg-soft); }
+.lc-stage .lc-detail { color: var(--faint); font-size: 11px; }
+.lc-stage.lc-current .lc-detail { color: var(--accent-ink); }
+
+/* ux-starthere (brief §1/X-5): the empty-home "Start here" hero. .start-here re-enables pointer-events
+   (base .cy-empty is none) so the step buttons are clickable; .sh-step resets button{background:accent}. */
+.cy-empty.start-here { pointer-events: none; }
+.sh-card { pointer-events: auto; max-width: 460px; width: 100%; padding: 4px 16px; text-align: left; }
+.sh-title { font-family: "Space Grotesk", sans-serif; font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.sh-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.sh-steps { display: flex; flex-direction: column; gap: 8px; }
+.sh-step { display: flex; align-items: flex-start; gap: 12px; margin: 0; padding: 12px 14px; width: 100%;
+  background: var(--card); color: var(--ink); border: 1px solid var(--border); border-radius: 10px;
+  text-align: left; cursor: pointer; font-weight: 400; }
+.sh-step:hover { border-color: var(--accent); background: var(--bg-soft); }
+.sh-num { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 22px; width: 22px; height: 22px;
+  border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700; }
+.sh-body { display: flex; flex-direction: column; gap: 1px; }
+.sh-step-label { font-size: 14px; font-weight: 600; color: var(--ink); }
+.sh-step-hint { font-size: 12px; color: var(--faint); }
+.sh-step-hint code { background: var(--bg-soft); color: var(--accent-ink); padding: 0 4px; border-radius: 3px; font-size: 11px; }
+
+/* ux-enrich (brief §18): the entity-first enrich section + the collapsible provider config. */
+.enr-entityfirst { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 12px 0 18px; }
+.enr-ef-sub { font-size: 13px; color: var(--muted); margin: 2px 0 12px; }
+.enr-ef-ctrl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.enr-ef-input { flex: 1 1 280px; min-width: 220px; margin: 0; }
+.enr-ef-out { margin-top: 12px; font-size: 13px; color: var(--ink); }
+.enr-ef-out.warn { color: var(--accent-ink); }
+.enr-ef-head { font-weight: 600; margin-bottom: 6px; }
+.enr-ef-line { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.enr-configure { margin-top: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.enr-configure > .enr-configure-summary { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; list-style: none; font-weight: 600; color: var(--ink); }
+.enr-configure > .enr-configure-summary::-webkit-details-marker { display: none; }
+.enr-configure > .enr-configure-summary::before { content: "▸"; color: var(--faint); font-size: 12px; }
+.enr-configure[open] > .enr-configure-summary::before { content: "▾"; }
+.enr-configure-title { font-family: "Space Grotesk", sans-serif; }
+.enr-configure .enr-grid { padding: 0 16px 16px; }
+
+/* ux-rowmenu (item 4): the per-row entity ⋯ actions menu. The row head is a flex row: the expand button
+   (flex-1) + the ⋯ menu button; the popover overlays beneath it. .ent-menu-btn resets button{background}. */
+.ent-rowhead { display: flex; align-items: stretch; }
+.ent-rowhead .ent-top { flex: 1 1 auto; }
+.ent-menu-wrap { position: relative; display: flex; align-items: center; padding-right: 6px; }
+.ent-menu-btn { margin: 0; padding: 4px 10px; background: transparent; color: var(--muted); border: 0; border-radius: 8px; font-size: 18px; line-height: 1; cursor: pointer; }
+.ent-menu-btn:hover { background: var(--bg-soft); color: var(--ink); }
+.ent-menu-pop { position: absolute; right: 6px; top: calc(100% - 4px); z-index: 20; min-width: 168px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 14px rgba(28,25,23,0.12); padding: 4px; }
+.ent-menu-pop[hidden] { display: none; }
+.ent-menu-item { display: block; width: 100%; margin: 0; padding: 8px 10px; background: transparent; color: var(--ink); border: 0; border-radius: 6px; text-align: left; font-size: 13px; font-weight: 400; cursor: pointer; }
+.ent-menu-item:hover { background: var(--bg-soft); color: var(--accent-ink); }
+
+.cy-setchip-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.cy-setchip-actions button { margin: 0; padding: 4px 9px; font-size: 12px; border-radius: 6px; }

@@ -1,0 +1,706 @@
+{
+  "_doc": "Chat Control Center parity ledger (PRD prd-chat-control-center-2026-06-25, issue ccc-parity-harness). Pinned source of truth: one row per CURRENT affordance from the PRD's pinned ledger. tests/parity/affordances.test.ts proves each row against the shipped sources + the live command router. A row is PRESERVED iff at least one of its `proof` anchors is satisfied (OR semantics = the affordance has at least one live home). The manifest is frozen: only this issue's allowed_files include it, so issues 2-5 cannot shrink it. They MUST keep every row green as affordances are rehomed. Each row is seeded with its CURRENT home anchor (green now) and, where the home moves, the CONTRACTED new home (a chat node card via renderNodeCard, a chat command via the parseGraphCommand router, etc.) so a faithful rehome keeps the row green without manifest edits. Anchor types: 'source' = a substring present in `file` (a DOM id / a bound handler / a render symbol); 'command' = parseGraphCommand(phrase) resolves to `kind` (the chat command router); 'tradecraft' = parseTradecraftCommand(phrase) resolves to `kind`.",
+  "categories": [
+    "nav",
+    "graph-controls",
+    "lifecycle",
+    "intake",
+    "tradecraft",
+    "node-card",
+    "edge-card",
+    "run-control",
+    "run-path-ids",
+    "cases",
+    "search",
+    "analyst-correct",
+    "routes",
+    "config"
+  ],
+  "affordances": [
+    {
+      "id": "nav-workspace",
+      "label": "Workspace nav item (was Chat + graph)",
+      "category": "nav",
+      "kind": "nav",
+      "source": "index.html:53",
+      "proof": [{ "type": "source", "file": "index.html", "contains": "href=\"#/\" data-route=\"/\"" }]
+    },
+    {
+      "id": "nav-osint",
+      "label": "OSINT tools nav item (was Enrich)",
+      "category": "nav",
+      "kind": "nav",
+      "source": "index.html:54",
+      "proof": [{ "type": "source", "file": "index.html", "contains": "href=\"#/enrich\" data-route=\"/enrich\"" }]
+    },
+    {
+      "id": "nav-api",
+      "label": "LLM API & account nav item (was Account)",
+      "category": "nav",
+      "kind": "nav",
+      "source": "index.html:55",
+      "proof": [{ "type": "source", "file": "index.html", "contains": "href=\"#/account\" data-route=\"/account\"" }]
+    },
+
+    {
+      "id": "gc-layout-select",
+      "label": "Graph layout selector",
+      "category": "graph-controls",
+      "kind": "input",
+      "source": "app.ts:3070 (buildControls) -> floating toolbar + chat command",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "sel.title = \"Layout\"" },
+        { "type": "command", "phrase": "layout fcose", "kind": "setLayout" }
+      ]
+    },
+    {
+      "id": "gc-fit",
+      "label": "Fit graph to view",
+      "category": "graph-controls",
+      "kind": "action",
+      "source": "app.ts:3085 (Fit) -> toolbar + chat command",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "ctlBtn(\"Fit\"" },
+        { "type": "command", "phrase": "fit", "kind": "fit" }
+      ]
+    },
+    {
+      "id": "gc-relayout",
+      "label": "Re-layout the graph",
+      "category": "graph-controls",
+      "kind": "action",
+      "source": "app.ts:3086 (Re-layout) -> toolbar + chat command",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "ctlBtn(\"Re-layout\"" },
+        { "type": "command", "phrase": "relayout", "kind": "relayout" }
+      ]
+    },
+    {
+      "id": "gc-path",
+      "label": "Shortest-path mode (pick two nodes)",
+      "category": "graph-controls",
+      "kind": "toggle",
+      "source": "app.ts:3092 (Path)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "ctlBtn(\"Path\"" }]
+    },
+    {
+      "id": "gc-search",
+      "label": "Search a node on the canvas",
+      "category": "graph-controls",
+      "kind": "input",
+      "source": "app.ts:3099 (cy-search) -> toolbar + chat command",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "cy-search" },
+        { "type": "command", "phrase": "search unydigma", "kind": "search" }
+      ]
+    },
+    {
+      "id": "gc-search-go",
+      "label": "Run node search (Go)",
+      "category": "graph-controls",
+      "kind": "action",
+      "source": "app.ts:3107 (Go)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "ctlBtn(\"Go\", runSearch)" }]
+    },
+    {
+      "id": "gc-facet-roles",
+      "label": "Filter by role facet",
+      "category": "graph-controls",
+      "kind": "input",
+      "source": "app.ts:3160 (mkSelect roles) -> toolbar + chat command",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "mkSelect(\"roles\"" },
+        { "type": "command", "phrase": "only domains", "kind": "filterType" }
+      ]
+    },
+    {
+      "id": "gc-facet-origins",
+      "label": "Filter by origin facet",
+      "category": "graph-controls",
+      "kind": "input",
+      "source": "app.ts:3161 (mkSelect origins)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "mkSelect(\"origins\"" }]
+    },
+    {
+      "id": "gc-facet-clusters",
+      "label": "Filter by cluster facet",
+      "category": "graph-controls",
+      "kind": "input",
+      "source": "app.ts:3162 (mkSelect clusters)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "mkSelect(\"clusters\"" }]
+    },
+    {
+      "id": "gc-toggle-meaningful",
+      "label": "Visibility toggle: meaningful only",
+      "category": "graph-controls",
+      "kind": "toggle",
+      "source": "app.ts:3186 (mkToggle meaningful only)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "mkToggle(\"meaningful only\"" }]
+    },
+    {
+      "id": "gc-toggle-incluster",
+      "label": "Visibility toggle: in a cluster",
+      "category": "graph-controls",
+      "kind": "toggle",
+      "source": "app.ts:3187 (mkToggle in a cluster)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "mkToggle(\"in a cluster\"" }]
+    },
+    {
+      "id": "gc-toggle-coocc",
+      "label": "Visibility toggle: co-occurrence links",
+      "category": "graph-controls",
+      "kind": "toggle",
+      "source": "app.ts:3188 (mkToggle co-occurrence links)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "mkToggle(\"co-occurrence links\"" }]
+    },
+    {
+      "id": "gc-reset-view",
+      "label": "Reset view (clear filters + show all)",
+      "category": "graph-controls",
+      "kind": "action",
+      "source": "app.ts:3192 (Reset view) -> toolbar + chat command",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "ctlBtn(\"Reset view\"" },
+        { "type": "command", "phrase": "show all", "kind": "showAll" }
+      ]
+    },
+    {
+      "id": "gc-legend",
+      "label": "Legend toggle (shape/color/line meaning)",
+      "category": "graph-controls",
+      "kind": "toggle",
+      "source": "app.ts:3205 (Legend)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "ctlBtn(\"Legend\"" }]
+    },
+    {
+      "id": "gc-min-score",
+      "label": "Filter by minimum score (chat command)",
+      "category": "graph-controls",
+      "kind": "input",
+      "source": "commands.ts (parseGraphCommand minScore) — chat-driven control",
+      "proof": [{ "type": "command", "phrase": "min score 50", "kind": "minScore" }]
+    },
+
+    {
+      "id": "lc-intake",
+      "label": "Lifecycle stage: Intake",
+      "category": "lifecycle",
+      "kind": "render",
+      "source": "lifecycle.ts:56 -> chat-driven progress strip",
+      "proof": [{ "type": "source", "file": "src/lifecycle.ts", "contains": "label: \"Intake\"" }]
+    },
+    {
+      "id": "lc-investigate",
+      "label": "Lifecycle stage: Investigate",
+      "category": "lifecycle",
+      "kind": "render",
+      "source": "lifecycle.ts:61 -> chat-driven progress strip",
+      "proof": [{ "type": "source", "file": "src/lifecycle.ts", "contains": "label: \"Investigate\"" }]
+    },
+    {
+      "id": "lc-deliver",
+      "label": "Lifecycle stage: Deliver",
+      "category": "lifecycle",
+      "kind": "render",
+      "source": "lifecycle.ts:66 -> chat-driven progress strip",
+      "proof": [{ "type": "source", "file": "src/lifecycle.ts", "contains": "label: \"Deliver\"" }]
+    },
+    {
+      "id": "lc-portfolio",
+      "label": "Lifecycle stage: Portfolio",
+      "category": "lifecycle",
+      "kind": "render",
+      "source": "lifecycle.ts:70 -> chat-driven progress strip",
+      "proof": [{ "type": "source", "file": "src/lifecycle.ts", "contains": "label: \"Portfolio\"" }]
+    },
+
+    {
+      "id": "intake-attach",
+      "label": "Attach files/images from the chat input",
+      "category": "intake",
+      "kind": "action",
+      "source": "dock.ts:216 (chat-attach button)",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "id=\"chat-attach\"" }]
+    },
+    {
+      "id": "intake-file-input",
+      "label": "Hidden file input (PDF/DOCX/image/CSV/XLSX/TXT/JSON)",
+      "category": "intake",
+      "kind": "input",
+      "source": "dock.ts:217 (chat-file)",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "id=\"chat-file\"" }]
+    },
+
+    {
+      "id": "tc-scope",
+      "label": "Tradecraft gate: Scope",
+      "category": "tradecraft",
+      "kind": "action",
+      "source": "tradecraft.ts:35 -> chat chip + command",
+      "proof": [
+        { "type": "source", "file": "src/chat/tradecraft.ts", "contains": "key: \"scope\"" },
+        { "type": "tradecraft", "phrase": "scope", "kind": "scope" }
+      ]
+    },
+    {
+      "id": "tc-challenge",
+      "label": "Tradecraft gate: Challenge",
+      "category": "tradecraft",
+      "kind": "action",
+      "source": "tradecraft.ts:37 -> chat chip + command",
+      "proof": [
+        { "type": "source", "file": "src/chat/tradecraft.ts", "contains": "key: \"challenge\"" },
+        { "type": "tradecraft", "phrase": "challenge", "kind": "gate" }
+      ]
+    },
+    {
+      "id": "tc-premortem",
+      "label": "Tradecraft gate: Premortem",
+      "category": "tradecraft",
+      "kind": "action",
+      "source": "tradecraft.ts:39 -> chat chip + command",
+      "proof": [
+        { "type": "source", "file": "src/chat/tradecraft.ts", "contains": "key: \"premortem\"" },
+        { "type": "tradecraft", "phrase": "premortem", "kind": "gate" }
+      ]
+    },
+    {
+      "id": "tc-timeline",
+      "label": "Tradecraft helper: Timeline",
+      "category": "tradecraft",
+      "kind": "action",
+      "source": "tradecraft.ts:41 -> chat chip + command",
+      "proof": [
+        { "type": "source", "file": "src/chat/tradecraft.ts", "contains": "key: \"timeline\"" },
+        { "type": "tradecraft", "phrase": "timeline", "kind": "helper" }
+      ]
+    },
+    {
+      "id": "tc-target",
+      "label": "Tradecraft helper: Target",
+      "category": "tradecraft",
+      "kind": "action",
+      "source": "tradecraft.ts:43 -> chat chip + command",
+      "proof": [
+        { "type": "source", "file": "src/chat/tradecraft.ts", "contains": "key: \"target\"" },
+        { "type": "tradecraft", "phrase": "target @unydigma", "kind": "helper" }
+      ]
+    },
+    {
+      "id": "tc-reality-check",
+      "label": "Tradecraft helper: Reality check",
+      "category": "tradecraft",
+      "kind": "action",
+      "source": "tradecraft.ts:45 -> chat chip + command",
+      "proof": [
+        { "type": "source", "file": "src/chat/tradecraft.ts", "contains": "key: \"reality_check\"" },
+        { "type": "tradecraft", "phrase": "reality check", "kind": "helper" }
+      ]
+    },
+    {
+      "id": "tc-bar",
+      "label": "Tradecraft bar render in chat",
+      "category": "tradecraft",
+      "kind": "render",
+      "source": "dock.ts (tc-bar toolbar)",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "tc-bar" }]
+    },
+
+    {
+      "id": "node-card",
+      "label": "Node detail rendered as a chat node card",
+      "category": "node-card",
+      "kind": "render",
+      "source": "dock.ts (renderNodeCard, __kipiChat.showNode) — already the chat home for the node drawer",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "renderNodeCard" }]
+    },
+    {
+      "id": "node-dossier-sections",
+      "label": "Node dossier + typed connections + co-occurrence sections",
+      "category": "node-card",
+      "kind": "render",
+      "source": "app.ts:2640 (renderEntitySections) -> node card",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "renderEntitySections" },
+        { "type": "source", "file": "src/chat/dock.ts", "contains": "renderNodeCard" }
+      ]
+    },
+    {
+      "id": "node-cluster-section",
+      "label": "Node cluster membership section",
+      "category": "node-card",
+      "kind": "render",
+      "source": "app.ts:2713 (renderClusterSection)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "renderClusterSection" }]
+    },
+    {
+      "id": "node-ai-affordances",
+      "label": "Node AI affordances (dossier + type relations)",
+      "category": "node-card",
+      "kind": "render",
+      "source": "app.ts:2743 (renderAiAffordances)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "renderAiAffordances" }]
+    },
+    {
+      "id": "node-ai-dossier",
+      "label": "Node action: AI dossier (LLM pass)",
+      "category": "node-card",
+      "kind": "action",
+      "source": "app.ts:825 (runAiDossier)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "runAiDossier" }]
+    },
+    {
+      "id": "node-type-relations",
+      "label": "Node action: Type relations (semantic rel LLM pass)",
+      "category": "node-card",
+      "kind": "action",
+      "source": "app.ts:845 (runSemanticRelations)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "runSemanticRelations" }]
+    },
+
+    {
+      "id": "edge-card",
+      "label": "Edge detail rendered as a chat edge card",
+      "category": "edge-card",
+      "kind": "render",
+      "source": "REHOMED — remove-cards (founder 2026-07-03) retired the chat edge card; edge detail is now graph-side via the CyGraph onEdgeTap selection path (OR-semantics: original home OR the graph re-home).",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "renderEdgeCard" }, { "type": "source", "file": "src/graph/cy-graph.ts", "contains": "onEdgeTap" }]
+    },
+    {
+      "id": "edge-evidence",
+      "label": "Edge evidence (edgeView) in the edge card",
+      "category": "edge-card",
+      "kind": "render",
+      "source": "REHOMED — remove-cards retired the card, but the edge-evidence resolver survives: the edgeView dep + edgeViewFor lookup are wired in app.ts (graph-side), so edge evidence is still reachable.",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "deps.edgeView(" }, { "type": "source", "file": "src/app.ts", "contains": "edgeViewFor" }]
+    },
+
+    {
+      "id": "run-stop",
+      "label": "Stop the live investigator run",
+      "category": "run-control",
+      "kind": "action",
+      "source": "dock.ts:212 (stopBtn)",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "id=\"stopBtn\"" }]
+    },
+
+    {
+      "id": "runpath-trail",
+      "label": "Run step trail (stable id #trail)",
+      "category": "run-path-ids",
+      "kind": "render",
+      "source": "dock.ts:192 (#trail) — must stay stable for Playwright proofs",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "id=\"trail\"" }]
+    },
+    {
+      "id": "runpath-findings",
+      "label": "Run promoted findings (recorded to the run store; rendered on the graph + /runs)",
+      "category": "run-path-ids",
+      "kind": "render",
+      "source": "remove-chat-findings 2026-07-08: the in-chat #findings chip column was cut (founder: it messes up the chat). The promoted findings still exist — recordRunFindings writes them to the run store, which the graph and the /runs Run-trail page project.",
+      "proof": [{ "type": "source", "file": "src/run-store.ts", "contains": "state.findings = findings" }]
+    },
+    {
+      "id": "runpath-leads",
+      "label": "Run held leads (recorded to the run store; rendered on the graph + /runs)",
+      "category": "run-path-ids",
+      "kind": "render",
+      "source": "remove-chat-findings 2026-07-08: the in-chat #leads chip column was cut alongside #findings. The held leads still exist — recordRunFindings writes them to the run store, which the graph and the /runs Run-trail page project.",
+      "proof": [{ "type": "source", "file": "src/run-store.ts", "contains": "state.leads = leads" }]
+    },
+    {
+      "id": "runpath-brief",
+      "label": "Run brief output (stable id #brief)",
+      "category": "run-path-ids",
+      "kind": "render",
+      "source": "dock.ts:200 (#brief) — stable for Playwright proofs",
+      "proof": [{ "type": "source", "file": "src/chat/dock.ts", "contains": "id=\"brief\"" }]
+    },
+
+    {
+      "id": "cases-switcher-menu",
+      "label": "Cases switcher dropdown",
+      "category": "cases",
+      "kind": "nav",
+      "source": "app.ts (renderCaseMenu fills #case-menu) -> chat top",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "renderCaseMenu" },
+        { "type": "source", "file": "index.html", "contains": "id=\"case-menu\"" }
+      ]
+    },
+    {
+      "id": "cases-switch-fn",
+      "label": "Switch active case (switchCase)",
+      "category": "cases",
+      "kind": "action",
+      "source": "app.ts:250 (switchCase)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "function switchCase" }]
+    },
+
+    {
+      "id": "cmdk-input",
+      "label": "Global search input (⌘K)",
+      "category": "search",
+      "kind": "input",
+      "source": "index.html:134 (#cmdk-input) -> chat top",
+      "proof": [{ "type": "source", "file": "index.html", "contains": "id=\"cmdk-input\"" }]
+    },
+    {
+      "id": "cmdk-wire",
+      "label": "⌘K search handler wired to the entity DB",
+      "category": "search",
+      "kind": "action",
+      "source": "app.ts:3908 (wireCmdkSearch)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "wireCmdkSearch" }]
+    },
+
+    {
+      "id": "correct-apply",
+      "label": "Analyst Correct: apply override",
+      "category": "analyst-correct",
+      "kind": "action",
+      "source": "app.ts:552 (applyCorrection) -> node card",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "applyCorrection" }]
+    },
+    {
+      "id": "correct-revert",
+      "label": "Analyst Correct: revert override",
+      "category": "analyst-correct",
+      "kind": "action",
+      "source": "app.ts (revertCorrection) -> node card",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "revertCorrection" }]
+    },
+    {
+      "id": "correct-list",
+      "label": "Analyst Correct: list overrides",
+      "category": "analyst-correct",
+      "kind": "render",
+      "source": "app.ts (listCorrections)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "listCorrections" }]
+    },
+
+    {
+      "id": "route-home",
+      "label": "Home route: graph + chat split view",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:1430 (renderSplitView)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "function renderSplitView" }]
+    },
+    {
+      "id": "route-capabilities",
+      "label": "/capabilities route (OSINT toolkit catalog; reachable from the Enrich page, not in the 3-link nav)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts renderCapabilitiesPage; linked from renderEnrichPage (clu-workspace-nav — founder 2026-07-08: kept out of the 3-link sidebar, reachable in-context).",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "renderCapabilitiesPage" }]
+    },
+    {
+      "id": "route-full-tool",
+      "label": "/full-tool route (the paid-tool upsell — what four_points does that the browser can't)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts renderFullToolPage; a dedicated 4th sidebar item (free/pro split, founder 2026-07-08).",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "renderFullToolPage" }]
+    },
+    {
+      "id": "route-tools",
+      "label": "/tools route (what the app actually runs — no-key / your-key / pro — derived from the live registries)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts renderToolsPage; a dedicated sidebar item (founder 2026-07-09).",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "renderToolsPage" }]
+    },
+    {
+      "id": "route-entities",
+      "label": "/entities route (dense -> animated canvas takeover)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:905 -> renderEntitiesPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderEntitiesPage" }]
+    },
+    {
+      "id": "route-clusters",
+      "label": "/clusters route",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:906 -> renderClustersPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderClustersPage" }]
+    },
+    {
+      "id": "route-bridges",
+      "label": "/bridges route",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:907 -> renderBridgesPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderBridgesPage" }]
+    },
+    {
+      "id": "route-focus",
+      "label": "/focus route",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:908 -> renderFocusPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderFocusPage" }]
+    },
+    {
+      "id": "route-runs",
+      "label": "/runs route (narrative -> chat cards)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:909 -> renderRunsPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderRunsPage" }]
+    },
+    {
+      "id": "route-deliverables",
+      "label": "/deliverables route",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:910 -> renderDeliverablesPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderDeliverablesPage" }]
+    },
+    {
+      "id": "route-briefs",
+      "label": "/briefs route (narrative -> chat cards)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:911 -> renderGroupedBriefsPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderGroupedBriefsPage" }]
+    },
+    {
+      "id": "route-cross-case",
+      "label": "/cross-case route (dense -> animated canvas takeover)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:912 -> renderCrossCasePage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderCrossCasePage" }]
+    },
+    {
+      "id": "route-reports",
+      "label": "/reports route",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:913 -> renderReportsPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderReportsPage" }]
+    },
+    {
+      "id": "route-inbox",
+      "label": "/inbox route",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:915 -> renderInboxPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderInboxPage" }]
+    },
+    {
+      "id": "route-cross-domain",
+      "label": "/cross-domain route",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:916 -> renderCrossDomainPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderCrossDomainPage" }]
+    },
+    {
+      "id": "route-corrections",
+      "label": "/corrections route (dense -> animated canvas takeover)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:917 -> renderCorrectionsPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderCorrectionsPage" }]
+    },
+    {
+      "id": "route-activity",
+      "label": "/activity route (narrative -> chat cards)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:918 -> renderActivityPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderActivityPage" }]
+    },
+    {
+      "id": "route-exports",
+      "label": "/exports route (dense -> animated canvas takeover)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:919 -> renderExportsPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderExportsPage" }]
+    },
+    {
+      "id": "route-report",
+      "label": "/report route",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:921 -> renderReportPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderReportPage" }]
+    },
+    {
+      "id": "route-cases",
+      "label": "/cases route (manage cases)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:920 -> renderCasesPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderCasesPage" }]
+    },
+    {
+      "id": "route-alerts",
+      "label": "/alerts route (narrative -> chat cards)",
+      "category": "routes",
+      "kind": "render",
+      "source": "app.ts:922 -> renderAlertsPage",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderAlertsPage" }]
+    },
+
+    {
+      "id": "config-osint",
+      "label": "OSINT tools config screen (renderEnrichPage)",
+      "category": "config",
+      "kind": "render",
+      "source": "pages.ts:2711 (renderEnrichPage)",
+      "proof": [{ "type": "source", "file": "src/pages.ts", "contains": "function renderEnrichPage" }]
+    },
+    {
+      "id": "config-account",
+      "label": "LLM API & account config screen (renderAccountView)",
+      "category": "config",
+      "kind": "render",
+      "source": "app.ts:1462 (renderAccountView)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "function renderAccountView" }]
+    },
+    {
+      "id": "config-account-keys",
+      "label": "Anthropic key card (renderKeysCard)",
+      "category": "config",
+      "kind": "input",
+      "source": "app.ts:1894 (renderKeysCard)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "function renderKeysCard" }]
+    },
+    {
+      "id": "config-account-signout",
+      "label": "Sign out / session lock (renderSessionCard)",
+      "category": "config",
+      "kind": "action",
+      "source": "app.ts:1506 (renderSessionCard, #lockBtn)",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "function renderSessionCard" },
+        { "type": "source", "file": "src/app.ts", "contains": "id=\"lockBtn\"" }
+      ]
+    },
+    {
+      "id": "config-account-storage",
+      "label": "Vault storage location (renderStorageBar: disk/OPFS, export, import)",
+      "category": "config",
+      "kind": "action",
+      "source": "app.ts (renderStorageBar)",
+      "proof": [{ "type": "source", "file": "src/app.ts", "contains": "function renderStorageBar" }]
+    },
+    {
+      "id": "config-account-recovery",
+      "label": "Recovery passphrase flow (authFreshRecoveryCard / #auth-recovery)",
+      "category": "config",
+      "kind": "render",
+      "source": "app.ts:1399 (authFreshRecoveryCard)",
+      "proof": [
+        { "type": "source", "file": "src/app.ts", "contains": "function authFreshRecoveryCard" },
+        { "type": "source", "file": "src/app.ts", "contains": "id=\"auth-recovery\"" }
+      ]
+    }
+  ]
+}

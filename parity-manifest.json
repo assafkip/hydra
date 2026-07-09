@@ -1,0 +1,705 @@
+{
+  "_doc": "Capability matrix for the kipi-web 1:1 clone of investigations/webapp. THE CONTRACT. Every user-facing surface + load-bearing capability of the original gets exactly one row with a stable `id`. status: faithful = ported and functional; partial = present but missing depth; port-pending = stub shipped, tracked; absent = no client surface yet; out-of-scope = deliberately not 1:1, REQUIRES founder signoff (signoff field non-empty). Surface rows carry normalized `original_routes`/`port_routes` arrays — THESE are the contract the gate checks (the human `original`/`port`/`note` strings are for the doc). The parity gate is investigations/tests/test_kipi_web_parity.py. ACCOUNTABILITY (standing, green now): derived original surfaces (AST of app.py) == expected_original_surfaces; derived port routes (app.ts ROUTES) == expected_port_routes; every original surface owned by exactly one row; every shipped port route owned by >=1 row; manifest capability ids == required_capabilities; {unsigned out-of-scope rows} == pending_signoffs. COMPLETION (= done): every row faithful OR out-of-scope-with-signoff. Edit statuses only as a surface actually reaches that state, verified live.",
+  "binding_directive": "kipi-web must be a DIRECT, EXACT 1:1 clone of investigations/webapp — interface, graph, design identical, verbatim, no feature-strip. (founder 2026-06-17, transcript 025dc5ce; reaffirmed 2026-06-18, be75b848). port-pending/empty-state is NOT an acceptable closeout state. CHAT-LED DIVERGENCE (founder 2026-06-20, PRD prd-kipi-web-chat-led-usability): the sidebar is intentionally collapsed to Workspace + Enrich + Account. Every other route still RESOLVES (faithful surface, reachable by hash + in-app links) but is no longer in the nav — this supersedes the strict 1:1 for nav CHROME only; the surfaces themselves stay 1:1. GRAPH-GROWTH + CHAT-AUTONOMY DIVERGENCE (founder 2026-06-24, PRD prd-kipi-web-4points-investigator-parity, RCA rca-faithful-clone-wrong-reference-2026-06-23): for graph-edge GROWTH and chat run-TRIGGERING ONLY, the behavioral reference is re-pointed from investigations/webapp to the 4_points ops-log (case-031). The webapp renders/acts on EXTRACTION state; 4_points (and now kipi-web) render/act on INVESTIGATION state. (a) GRAPH: the home graph no longer folds intake co-occurrence edges (the doc-proximity hairball, reproduced at 13 nodes / 54 edges) — doc entities render as zero-edge typed pivot points; the agent draws investigated edges as it digs (coOccur preserved as agent leads, not rendered). (b) CHAT: the router no longer defaults a verb-led objective to Q&A — an explicit imperative digs, the recorded scope composes into the run objective, and the cost guard is an up-front per-case output-token budget (clean turn-boundary stop, never a mid-run kill). These two behaviors are CERTIFIED by deterministic kipi-web tests registered as standing bypass gates (per parity-and-directives.md clause 4, the gate NAMES + RUNS ON the artifact it certifies): tests/agent/d2-clump-repro.test.ts (ingest edges == 0), tests/chat/commands.test.ts (Door A imperative routing), tests/agent/run-objective.test.ts (scope composes into the case task + coOccur leads), tests/agent/budget.test.ts (up-front per-case budget). The surfaces stay present + faithful; only these two BEHAVIORS supersede the 1:1-webapp directive.",
+  "_behavioral_gates_doc": "A cap row can read `faithful` while its BEHAVIOR is stripped — the squares-not-circles role flatten (A1) and the junk-phone-node noise strip (A2) both shipped under `faithful` route/shape coverage. These gates close that blind spot: each entry binds a behaviorally-sensitive cap to a harness that RUNS the REAL kipi-web code (gate.ts, graphModelForCase) against the original and FAILS if behavior diverges. Enforced by investigations/tests/test_kipi_web_behavioral_parity.py — a cap listed here cannot stay `faithful` unless its harness is clean. Per parity-and-directives.md clause 4 (every gate NAMES + RUNS ON the artifact it certifies).",
+  "behavioral_gates": [
+    {
+      "cap_id": "cap-consolidate",
+      "harness": "investigations.parity_review.fifa_model_diff",
+      "check": "role_shape",
+      "proves": "A1: the per-case schema drives role classification, so attacker-operated spoof domains render as operator (ellipse), not flattened to infra (rectangle). Runs the REAL gate.ts + graphModelForCase + cy-adapter on the FIFA case and diffs role+shape per node vs the original api_graph."
+    },
+    {
+      "cap_id": "cap-process-pipeline",
+      "harness": "investigations.parity_review.boundaries.noise_floor",
+      "check": "noise_floor",
+      "proves": "A2: the admission gate rejects every junk class the original rejects (bare-id NANP phones, registry/registrar/reference domains, whois/nameserver boilerplate). Runs the REAL gate.ts isAdmissible (via parity-admit.mjs) vs admission.py over the probe corpus."
+    },
+    {
+      "cap_id": "cap-pdf-extract",
+      "harness": "investigations.parity_review.pdf_text_diff",
+      "check": "pdf_text",
+      "proves": "A3: the client PDF engine (MuPDF.js) extracts the IDENTICAL admitted entity set as the server (PyMuPDF) and catches the FIFA IC3 report's defanged scam domains (>=39 admitted domains, up from pdf.js's 4). Runs the REAL mupdf package (node) + the real extractor + admission gate on the FIFA PDF; self_test proves the entity diff FIRES on a pdf.js-class fragment-mangle and is clean on identical input."
+    }
+  ],
+  "expected_original_surfaces": [
+    "/",
+    "/activity",
+    "/alerts",
+    "/bridges",
+    "/briefs",
+    "/briefs/{}",
+    "/cases",
+    "/corrections",
+    "/cross-case",
+    "/cross-domain",
+    "/enrich",
+    "/entities",
+    "/entity/{}",
+    "/exports",
+    "/findings",
+    "/focus",
+    "/graph",
+    "/links",
+    "/report",
+    "/report/render",
+    "/reports",
+    "/reports/{}",
+    "/runs",
+    "/schema",
+    "/select-case/{}",
+    "/set-analyst/{}",
+    "/simple",
+    "/sources",
+    "/synthesis"
+  ],
+  "expected_port_routes": [
+    "/",
+    "/entities",
+    "/clusters",
+    "/bridges",
+    "/focus",
+    "/runs",
+    "/deliverables",
+    "/briefs",
+    "/cross-case",
+    "/reports",
+    "/enrich",
+    "/inbox",
+    "/cross-domain",
+    "/corrections",
+    "/activity",
+    "/exports",
+    "/report",
+    "/alerts",
+    "/cases",
+    "/account"
+  ],
+  "required_capabilities": [
+    "cap-ocr",
+    "cap-pdf-extract",
+    "cap-consolidate",
+    "cap-entity-typing",
+    "cap-understand-schema",
+    "cap-process-pipeline",
+    "cap-chat-step-trail",
+    "cap-chat-cost-footer",
+    "cap-chat-findings-card",
+    "cap-favicons",
+    "cap-cluster-colors",
+    "cap-user-proxy",
+    "cap-ai-dossier",
+    "cap-agent-loop",
+    "cap-cmdk-search",
+    "cap-enrich-cost",
+    "cap-reextract",
+    "cap-retro-clean",
+    "cap-typing-recover",
+    "cap-lifecycle-rail",
+    "cap-home-start-here",
+    "cap-enrich-entity-first",
+    "cap-entity-row-menu",
+    "cap-argon2id-kdf"
+  ],
+  "pending_signoffs": [],
+  "surfaces": [
+    {
+      "id": "sf-home",
+      "original": "/",
+      "template": "graph.html (home split)",
+      "port": "/",
+      "original_routes": [
+        "/"
+      ],
+      "port_routes": [
+        "/"
+      ],
+      "status": "faithful",
+      "note": "split-view SHELL + graph hydration faithful (G1 live-verified: the home graph re-hydrates from persisted runs across a navigate-away-return). Chat DEPTH is tracked separately by cap-chat-step-trail/cap-chat-cost-footer/cap-chat-findings-card; graph DEPTH by cap-favicons/cap-cluster-colors."
+    },
+    {
+      "id": "sf-graph",
+      "original": "/graph",
+      "template": "graph.html",
+      "port": "/ (folded)",
+      "original_routes": [
+        "/graph"
+      ],
+      "port_routes": [
+        "/"
+      ],
+      "status": "faithful",
+      "note": "cytoscape node/edge/shape/color/highlight + role-border/origin-style/confidence-edge legend verbatim; cluster-color fills RENDER from real LLM analytic clusters; cap-cluster-colors depth was RESTORED in PRD-B (pdb-analyze-depth) — the analyze pass feeding the colors now runs at the original token/rel floors with evidence fed (see cap-cluster-colors). The favicon delta is the deliberate zero-egress divergence, signed on cap-favicons. Folded onto / (home split-view); live-verified. GRAPH-EDGE CARVE-OUT (founder 2026-06-24, PRD prd-kipi-web-4points-investigator-parity, recorded in binding_directive): the graph SURFACE stays faithful (cytoscape / roles / shapes / clusters / legend verbatim), but the behavioral reference for EDGE GROWTH is re-pointed from investigations/webapp to the 4_points ops-log. A file dump renders typed pivot points with ZERO edges at ingest — the intake co-occurrence hairball (reproduced at 13 nodes / 54 edges) is NOT drawn; coOccur is preserved as agent leads (not rendered); the agent draws INVESTIGATED edges as it digs. This SUPERSEDES the prior 'co_occurs 200-char proximity / scaled model-diff IDENTICAL / incremental-seed-reveal won't-do' claims for edges. Certified by the running gate kipi-web/tests/agent/d2-clump-repro.test.ts (ingest edges==0); deploy pending."
+    },
+    {
+      "id": "sf-entities",
+      "original": "/entities",
+      "template": "entities.html",
+      "port": "/entities",
+      "original_routes": [
+        "/entities"
+      ],
+      "port_routes": [
+        "/entities"
+      ],
+      "status": "faithful",
+      "note": "client entity DB; rows = role/promoted/grade/run-count · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-entity-detail",
+      "original": "/entity/{id}",
+      "template": "entity.html",
+      "port": "drawer + /entities expand",
+      "original_routes": [
+        "/entity/{}"
+      ],
+      "port_routes": [],
+      "status": "faithful",
+      "note": "Per-entity DETAIL depth (entity.html) rendered to BOTH folds — the /entities-page inline EXPAND (buildEntityDetail) AND the chat node card (dock.ts renderNodeCard — remove-cards, founder 2026-07-03: the old graph-drawer card became a chat node card/message; the six-section detail content is unchanged) — so neither fold is hollow (the built-not-wired scar). SIX sections at the original's depth: §1+2 the attention-score header + a collapsible breakdown whose total ALWAYS equals the stored threatScore (propPts is the EXACT residual — the per-hop seed adjacency is not persisted) + the INC-4a centrality metrics (degree/betweenness/eigenvector/Louvain community); §3 the analyst ASSERT form (field {role,type} × the allowlist value — the analyst top authority, [[analyst-is-top-authority]]); §4 the per-entity corrections-audit slice + revert; §6 the EDITABLE analyst dossier override (the ONE new persisted key entity:<k>:dossier_override — single-writer vault.put, redacted IN+OUT, capped, secret-tainted rejected; mirrors setReportNotes EXACTLY; kept SEPARATE from the AI dossier so the analyst-edited badge + Revert-to-AI are honest); §7 the always-shown typed relationships (the INC-4a vocab-gated edges, other-endpoint resolved via the live store + clickable→/entities, forged endpoints dropped); §8 the appears-in list (EntityRecord.runs joined with the gate evidentiary weight). All READ-ONLY projections key-redacted at the session layer; the ONE write is the dossier override. SIGNED DIVERGENCE (route fold, established pattern — same as /findings→/runs, /briefs/{}→/briefs, /reports/{}→/reports): the dedicated /entity/{id} PAGE route is NOT a SPA route — the depth folds inline on /entities + the graph drawer (exact-Set router, no param route); original_routes ['/entity/{}'] owned for accountability, port_routes [] (the /entities route is owned by sf-entities). SIGNED (zero-retention ceiling, with the retained analog — no silent strip): §8 shows the appears-in PROJECTION (run + grade/promoted/sourceCount + surfaced_in confidence), NOT the raw mention SNIPPET TEXT — the report text is discarded at ingest write (same ceiling as sf-report-detail / extract_missing). Live-verified: the entity-detail unit test (9 cases — the score-total==stored invariant, typed-rel endpoint resolution + drop, appears-in, corrections slice, dossier round-trip + blank-revert + key-redaction, the no-leak belt) + verify-entity-detail.spec.ts (real Process, offline, zero egress, no key leak; DOM-asserts all six fold sections + the node-card §1+2/§7/§8 mirror) + Read screenshots of BOTH folds."
+    },
+    {
+      "id": "sf-runs",
+      "original": "/runs",
+      "template": "runs.html",
+      "port": "/runs",
+      "original_routes": [
+        "/runs"
+      ],
+      "port_routes": [
+        "/runs"
+      ],
+      "status": "faithful",
+      "note": "full run-trail faithful (R1 live-verified): expandable run card -> 5-step trail (tool calls + inputs + result bodies + reasoning) -> 'what it found' with each finding attributed to its source step -> deterministic bottom line + next move · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-findings",
+      "original": "/findings",
+      "template": "findings.html",
+      "port": "/runs (folded)",
+      "original_routes": [
+        "/findings"
+      ],
+      "port_routes": [
+        "/runs"
+      ],
+      "status": "faithful",
+      "note": "Full Findings-view depth ported over the /runs fold (the original /findings is a 302->/runs; no new route). The findingRow is the rich row: a confidence pill color-mapped EXACTLY high->role-infra / low->role-source / medium->role-operator (runs.html:267-268), the entity value as title, the agent's claim as an inline-markdown summary (escape-first XSS-safe — redacted IN with the steps before display; a leading -/#/| does not become a block; absent for claim-less ingest findings), the real step provenance, and the promoted '✓ on graph' state. A Trail|Findings toggle (default TRAIL — faithful to the original /runs default_view='trail'; the /findings 302->/runs?view=findings entry is the Findings toggle; the findings list renders in BOTH views, only the trail toggles). A Discovered-assets rollup projected over the persisted step trail (per asset: found-via step, checked-with tool(s), chased=a later step took it as input, on-graph). Next-moves = the held leads ranked as the entities to chase next. Live-verified (screenshot) + the verify-findings smoke (real-router, offline, zero egress, no key, mandatory negative: the old one-line dot row is gone). SIGNED DIVERGENCES (architectural, not strips; documented per parity-and-directives): (1) the per-finding manual Save->promote BUTTON is not ported — promotion is the single admission gate's decision + analyst authority is the Corrections surface ([[graph-noise-needs-one-admission-gate]] / [[analyst-is-top-authority]]); the '✓ on graph' state + Corrections are the present-and-functional analog. (2) Next-moves is the client-first ANALOG, not a reproduction of the server's reachability now/blocked split: the server classifies the agent's recommended_pivots by OSINT reachability (legal-process/internal-data/missing-key=blocked); the browser agent emits only findings (no recommended_pivots) and has no reachability classifier, so the client surfaces one honest 'chase to corroborate' ranked-leads list. (3) the asset rollup omits the server's live/dead liveness badge (no fabricated liveness — the client does not re-parse tool-result text) and uses first-seen order (vs the server's type-grouped sort) — minor display gaps. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-enrich",
+      "original": "/enrich",
+      "template": "enrich.html",
+      "port": "/enrich",
+      "original_routes": [
+        "/enrich"
+      ],
+      "port_routes": [
+        "/enrich"
+      ],
+      "status": "faithful",
+      "note": "BUILT to the original structure (codex finding-1 caught the prior port was a reduced copy), live-verified by tests/smoke/verify-enrich.spec.ts + a Read screenshot: a stats header (run count + entities enriched), an 'Available providers (6)' card grid (each card = name + configured chip + category chip + description + docs↗ + a key panel with show/hide + Save + Test + Clear + a key-source pill + a per-provider run), a Recent-runs TABLE (#, provider, target, status, entity, when) whose rows open a Run-detail MODAL of the run's findings, plus the user-proxy section. Signed client/server divergences (founder 2026-06-18): $-cost metering DROPPED (cap-enrich-cost, out-of-scope-signed: the BYO-key client never meters cost — the provider bills the user); provider 'modes' N/A (single-purpose client adapters); large-result clustering decisions live in the Process pipeline; env-var key source N/A (keys live in the vault); /entity/:id deep-links are the separate sf-entity-detail row. CORS-blocked providers' live fetch = cap-user-proxy; keyed-providers-as-agent-tools = M3/agent-enrich smoke (stale)."
+    },
+    {
+      "id": "sf-clusters",
+      "original": "(kipi addition)",
+      "template": "(kipi addition)",
+      "port": "/clusters",
+      "original_routes": [],
+      "port_routes": [
+        "/clusters"
+      ],
+      "status": "faithful",
+      "note": "deterministic component grouping + drawer section; client-only addition, no original equivalent · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-cross-case",
+      "original": "/cross-case",
+      "template": "cross-case.html",
+      "port": "/cross-case",
+      "original_routes": [
+        "/cross-case"
+      ],
+      "port_routes": [
+        "/cross-case"
+      ],
+      "status": "faithful",
+      "note": "honest empty state when no cross-case data · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-cross-domain",
+      "original": "/cross-domain",
+      "template": "cross-domain.html",
+      "port": "/cross-domain",
+      "original_routes": [
+        "/cross-domain"
+      ],
+      "port_routes": [
+        "/cross-domain"
+      ],
+      "status": "faithful",
+      "note": "Cross-domain renamed 'Cross-type' in the UI (sidebar + title + subtitle). type-detect wired. LABEL DIVERGENCE (founder 'do all' 2026-06-20): the original Python webapp keeps the old label; kipi-web intentionally relabels the UI. Route, data-route, projection, and function names are UNCHANGED, so the surface stays FUNCTION-faithful and the route-based parity gate stays green. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful.",
+      "label_divergence": {
+        "original": "Cross-domain",
+        "port": "Cross-type",
+        "signoff": "founder 'do all' 2026-06-20"
+      }
+    },
+    {
+      "id": "sf-deliverables",
+      "original": "/synthesis",
+      "template": "synthesis.html",
+      "port": "/deliverables",
+      "original_routes": [
+        "/synthesis"
+      ],
+      "port_routes": [
+        "/deliverables"
+      ],
+      "status": "faithful",
+      "note": "FAITHFUL (PRD-B pdb-synthesize-depth; RCA discipline-evaporation): the brief CONTENT depth is RESTORED on the live /deliverables path (synthesizeCaseBrief -> synthesizeBrief -> BRIEF_PERSONA). The section model is back to the original's 14+ sections (target dossiers, key actors, communication channels, IOCs, attribution verdicts, cross-report, investigator leads, timeline…) from the thinned 6; the brief maxTokens cap is 8192 (was 1800) so a full multi-section brief is not truncated; and buildDigest now feeds the agent's per-finding CLAIM (the model-input the original got from profile dossiers). depth metrics synthesize-sections (14>=14) + synthesize-max-tokens (8192>=4096) green (depth_metric_gate.py). Re-flipped from partial; the consistency gate enforces it. The brief renders as MARKDOWN (.markdown card via the escape-first renderBriefMarkdown — headings/GFM-tables/lists/blockquote/fenced-code + inline bold/italic/code/[[entity]]-nav (CSP-safe click delegate, NO inline onclick)/[](https-only) links), NOT raw <pre>; Download .md bound to the raw md. A Regenerate/Generate-brief button (gated on a case; busy 'Regenerating… (LLM pass, ~30s)'; inline ok/err status) calls synthesizeCaseBrief via chatWire.synthesizeFetch (single-writer brief:case via persistBrief, key-redacted in+out; no-key SessionError surfaced inline). A yellow stale banner fires when builtOn (run count at synth time, stored on brief:case) < live run count. The /briefs grouped-relatedness surface is the separate sf-briefs row. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-briefs",
+      "original": "/briefs +/briefs/{}",
+      "template": "briefs.html/brief.html",
+      "port": "/briefs (+ Group button on /deliverables)",
+      "original_routes": [
+        "/briefs",
+        "/briefs/{}"
+      ],
+      "port_routes": [
+        "/briefs"
+      ],
+      "status": "faithful",
+      "note": "Grouped-relatedness briefs viewer — FAITHFUL, live-verified. ONE /briefs route (renderGroupedBriefsPage) renders the grouped list (verdict badge strong=green/weak=yellow/disjoint=red/unknown=gray + ## Summary preview <=280 + 'N reports · <time-window>' + a standalone bucket, parsed with the SAME four regexes as the original briefs.html); clicking a group card EXPANDS it INLINE to the full group markdown via the escape-first renderBriefMarkdown (the client router is exact-Set-match — no /briefs/:name route; inline expand is the faithful fold, same pattern as /runs; /briefs/{} folds onto /briefs). The briefs.py engine is ported to src/agent/briefs.ts: Jaccard over per-report canonKey entity sets (runEntities→canonKey, role joined from entityDbFor) with the INCIDENTAL_NAMES stoplist + person_candidate-no-role + role:noise filters, shared-cluster relatedness (analyze memberKeys), union-find with the COMPOUND gate, EXACT verdict thresholds (jaccard>=0.15 OR >=1 shared cluster→strong; >=0.03→weak; else disjoint); pre-Process there are no analyze clusters so grouping is Jaccard-only. Per-group + standalone summaries via synthesizeGroupSummary (the briefs.py SYSTEM/STANDALONE personas verbatim, key-redacted IN+OUT, bounded MAX_GROUP_BRIEFS, offline-seamed via PageDeps.groupBriefs). Records persisted groupbrief:group-<n>/groupbrief:standalone + a groupbrief:index pointer (mirrors briefs.py INDEX.md; the Vault has no delete, so the index is the source of truth). TRIGGER DIVERGENCE (in-pattern): the original briefs.py is a STANDALONE CLI command — the client mirrors it with a 'Group related reports' BUTTON on /deliverables (not a Process step). SIGNED DIVERGENCE: per-group summary maxTokens 700/150 (the BYO-key client bounds what the server's uncapped llm.ask did not). WRITE-PATH: ingest now records title/ingestedAt/sourceType on RunRecord through the existing single-writer ingestText + redaction, backward-compatible. Live-verified: verify-briefs.spec.ts (offline, real-router, zero egress, no key leak) + Read screenshots of /briefs + an expanded group. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-reports",
+      "original": "/reports",
+      "template": "reports.html",
+      "port": "/reports",
+      "original_routes": [
+        "/reports"
+      ],
+      "port_routes": [
+        "/reports"
+      ],
+      "status": "faithful",
+      "note": "/reports renders the intake card + Process panel + a reports TABLE (Title link / Type source_type role-source pill / Investigation / Entities / Ingested, newest-first by ingestedAt; full-row INLINE-EXPAND to the per-report detail). listIngestedDocs projects title/ingestedAt/sourceType (already persisted by ingestText since sf-briefs; single-writer unchanged) + sorts by ingestedAt. SIGNED DIVERGENCES (zero-retention/no-backend ceiling, with analogs, not stubbed): no Assets/pages column (no client asset store — entity count carries the weight); no source_path (no browser fs — the key-redacted title is the provenance analog, shown as Title); no Image-links affordance (server crawl). Live-verified: verify-reports.spec.ts (offline, zero egress, no key) + Read screenshot. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-report-detail",
+      "original": "/reports/{id}",
+      "template": "report-detail.html",
+      "port": "/reports",
+      "original_routes": [
+        "/reports/{}"
+      ],
+      "port_routes": [
+        "/reports"
+      ],
+      "status": "faithful",
+      "note": "Per-report detail folds onto /reports as an INLINE EXPAND (exact-Set router, no param route — same fold as /briefs/{}->/briefs and /findings->/runs). Shows header meta (entities/sourceType/ingested) + an Entities-in-this-report card (each row value·type + role + grade + threat_score where present, noise-filtered, score-sorted, click->/entities) + the autosave notes editor (getReportNotes/setReportNotes — the report_notes analog) + the analyst-overrides card (corrections touching the report's entities). SIGNED DIVERGENCE (zero-retention ceiling): NO raw/OCR page view — the source text is discarded at ingest write (same ceiling as extract_missing INC-4b); the gate-faithful extracted entities ARE the retained projection of the pages. expected_port_routes + app.ts ROUTES UNCHANGED (the fold). Live-verified by a Read screenshot of an expanded report. MICRO-DIVERGENCE: no per-entity sub_role pill (the client EntityRecord has no per-entity sub_role; the schema's sub_roles are not assigned per-entity). SIGNED (architecturally N/A, with analogs — no silent strip): Move-to-case is N/A (the client vault is single-case); Delete is N/A (the OPFS/disk Vault has no delete primitive); 'Read the pages'/raw-text is N/A (report text is discarded at ingest write — zero-retention; the extracted-entities card is the retained projection). · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-sources",
+      "original": "/sources",
+      "template": "sources.html",
+      "port": "/inbox",
+      "original_routes": [
+        "/sources"
+      ],
+      "port_routes": [
+        "/inbox"
+      ],
+      "status": "faithful",
+      "note": "Sources gallery — a Docs/Sources TOGGLE on the EXISTING /inbox (no new route — the established inline-fold). sourcesFor (session.ts) joins listIngestedDocs (redacted title/date/sourceType) with runEntities per doc (redacted entity labels, capped 12 like the original mentions LIMIT 12) + the redacted store for each entity's display role/ref. renderSourcesGallery (pages.ts) = a grid+table VIEW toggle (the original's two views) + report/date/entity/text filters (CLIENT-SIDE over the redacted list) + per-doc entity CHIPS (role-pill, click→/entities) + honest empty states; reads sourcesFor(d.vault) directly (the same pattern renderInboxPage uses for listIngestedDocs — NO new PageDeps method, NO app.ts change). SIGNED zero-retention divergences (no retained image/OCR blob — the sf-report-detail 'read the pages' ceiling): NO page-image thumbnail, NO raw-OCR snippet/lightbox, the text-q filter scoped to RETAINED text (title/sourceType/entity labels) NOT the discarded a.ocr_text blob, and per-DOCUMENT (not per-page-asset) granularity (the client has no assets/pages table). Read-only: NO new write path/vault key/migration/retention surface. All values via textContent; tainted docs/entities dropped. Live-verified: the sources-session unit test (the projection + per-doc entities + the no-leak belt) + verify-sources.spec.ts (ingest → toggle Sources → gallery + chips + a working filter, offline, zero egress, no key leak) + a Read screenshot. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-alerts",
+      "original": "/alerts",
+      "template": "alerts.html",
+      "port": "/alerts",
+      "original_routes": [
+        "/alerts"
+      ],
+      "port_routes": [
+        "/alerts"
+      ],
+      "status": "faithful",
+      "note": "Priority-actor alerts at the original alerts.html depth — SEVERITY tiers (HIGH=watchlist/grade-A, MEDIUM=cross-run) + the alert_type label + per-alert Acknowledge + Acknowledge-all + a Show-acknowledged toggle + the open/acknowledged counts (alertsFor extended; renderAlertsPage rebuilt). ACK is a NEW single-writer write-path: ackAlert/ackAllAlerts persist alert:<id>:ack {at,author} (mirrors setEntityDossierOverride EXACTLY — redacted IN, secret-tainted id rejected case-insensitively, getAnalyst author). The alert id is STABLE + deterministic (`${alertType}|${canonKey}`), so an ack persists across reloads. All values via textContent; the list re-paints in place after an ack (no global render). SIGNED divergence (honest, not a strip): the original alert_type `cross_case` (an entity in a DIFFERENT case) is single-vault-IMPOSSIBLE until sf-cases — the MEDIUM cross-RUN tier (an entity promoted across >=2 runs) is its within-vault analog; cross_case lands when multi-case does. The original's analyst-FLAG watchlist trigger maps to the client's grade-A/promoted proxy (flagging is the Corrections/role authority, not a separate flag UI). codex impl-review (2 rounds) caught the canonKey-lowercased-[redacted] D5 trap (the ack-rejection check is now case-insensitive + alertsFor drops tainted entities so no ack/id is formed for them — no collision). Read-only projection + ONE additive ack key; no migration, no new retention class beyond the existing redacted-local-vault note/correction/dossier family. Live-verified: alerts-session unit (tiers/ids + ack round-trip + ack-all + the tainted-reject + tainted-drop belts) + verify-alerts.spec.ts (HIGH+MEDIUM render, Acknowledge hides, Show-acknowledged reveals, Acknowledge-all clears; offline, zero egress, no key leak) + a Read screenshot. [CROSS-CASE UNLOCK (sf-cases shipped): multi-case now exists; the cross_case alert_type is no longer single-vault-impossible — a cross-CASE alert (an entity in >=2 cases) is a thin follow-up reading the raw vault's case:* namespaces. The within-vault cross-RUN tier remains the shipped analog; cross-case alerting is a small additive read, not a strip.] · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-corrections",
+      "original": "/corrections",
+      "template": "corrections.html",
+      "port": "/corrections",
+      "original_routes": [
+        "/corrections"
+      ],
+      "port_routes": [
+        "/corrections"
+      ],
+      "status": "faithful",
+      "note": "ANALYST IS TOP AUTHORITY — propagation verified on BOTH legs the codex finding required. ROLE: tests/smoke/verify-corrections.spec.ts (live, offline) proves applyCorrection role->operator re-projects to graphModel node.role + the /corrections audit card + the /entities detail, and Revert undoes it everywhere (screenshots Read). TYPE->BRIEF: tests/agent/session-brief.test.ts proves a type correction re-labels the finding entity_type in the digest generateBrief sends to synthesis (negative self-test: the original type is absent), and revert restores it. Note: grade/score is evidence/source-count derived and intentionally NOT changed by a classification correction (that IS faithful, not a gap). · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-activity",
+      "original": "/activity",
+      "template": "activity.html",
+      "port": "/activity",
+      "original_routes": [
+        "/activity"
+      ],
+      "port_routes": [
+        "/activity"
+      ],
+      "status": "faithful",
+      "note": "The 'who did what, when' feed — a NEW /activity route rendering renderActivityPage over activityFor(vault): a reverse-chron (at DESC, capped 200 like the original activity_mod.recent) PROJECTION over the SEVEN timestamped retained records, NO server activity table (the browser keeps no event log — the faithful zero-retention analog, reconstruct-from-retained never a new event-log surface). Sources: corrections (author/at → 'asserted/reverted {predicate} → {value}', entity label), dossier overrides (entity:<k>:dossier_override author/at → 'edited/reverted the dossier'), report notes (report:<obj>:notes at → 'edited notes'), uploads (run.ingestedAt + title → 'uploaded {title}', the file-ingest path), process (analysis.updatedAt → 'processed the case'), enrichment runs (listEnrichRuns at/provider/target → 'ran {provider} enrichment'), group briefs (groupbrief:index.at → 'grouped related reports'). All key-redacted at the session layer (labels via the redacted store; objectives/authors redacted; tainted records excluded); every value reaches the DOM via textContent; the empty state matches the original copy. In ROUTES + expected_port_routes lockstep + a sidebar nav link + render() dispatch. SIGNED divergences (NARROWED after the codex recon-validated PRD review caught that analysis.updatedAt/enrich.at/groupbrief.at ARE retained timestamps — built, not signed): genuinely no analyst-stamped timestamped client record exists for — base agent INVESTIGATION runs (RunRecord has no createdAt; only file-ingest stamps ingestedAt; the original's chat analog is ephemeral), per-step process substeps (only the latest analysis.updatedAt is retained — the record is rewritten each Process), alert acks (alert:<id>:ack does not exist until sf-alerts), client-report/DB-ack/node-add (server-only/ephemeral). Read-only projection: NO new write path, NO new vault key, NO migration, NO new retention surface (zero-retention posture unchanged). Live-verified: the activity-session unit test (7-source projection + reverse-chron + the no-leak redaction belt) + verify-activity.spec.ts (real Process + a correction + a note + an upload appear reverse-chron, offline, zero egress, no key leak) + a Read screenshot of the feed. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-links",
+      "original": "/links",
+      "template": "links.html",
+      "port": "(none)",
+      "original_routes": [
+        "/links"
+      ],
+      "port_routes": [],
+      "status": "out-of-scope",
+      "note": "Server-side remote-image fetch + OCR + asset-store; architecturally N/A in the zero-retention browser client (see signoff). The gate-extracted entities are the only retained projection.",
+      "signoff": "founder (autonomous run, 2026-06-19): out-of-scope. The original /links is a server-side remote-image fetch + OCR + asset-store (app.py api_links_scan). Architecturally N/A in the zero-retention browser client on 3 independent grounds: (1) browser CORS blocks fetching arbitrary remote image bytes for OCR (same wall as the enrich blocked-providers / user-proxy tier); (2) no client asset store (sf-reports signed); (3) report text is discarded at ingest write so there is nothing to re-scan for image URLs (same ceiling as extract_missing / cap-typing-recover). Not buildable client-side; no retained client analog."
+    },
+    {
+      "id": "sf-bridges",
+      "original": "/bridges",
+      "template": "bridges.html",
+      "port": "/bridges",
+      "original_routes": [
+        "/bridges"
+      ],
+      "port_routes": [
+        "/bridges"
+      ],
+      "status": "faithful",
+      "note": "Connectors (renamed from 'Cross-cluster bridges'/'Bridges' in the UI; sidebar + title + subtitle). renderBridgesPage — pure deterministic projection (bridgesFor) over persisted analyze clusters + typed_relationships, no LLM, no new key, no write-path change. A bridge = an entity spanning >= 2 analyze-clusters (membership OR a typed relationship to an entity in a different cluster), faithful to the original /api/bridges. Live-verified by verify-bridges.spec.ts (offline, zero egress, no key leak). LABEL DIVERGENCE (founder 'do all' 2026-06-20): the original Python webapp keeps the old label; kipi-web intentionally relabels the UI. Route, data-route, projection, and function names are UNCHANGED, so the surface stays FUNCTION-faithful and the route-based parity gate stays green. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful.",
+      "label_divergence": {
+        "original": "Bridges / Cross-cluster bridges",
+        "port": "Connectors",
+        "signoff": "founder 'do all' 2026-06-20"
+      }
+    },
+    {
+      "id": "sf-focus",
+      "original": "/focus",
+      "template": "focus.html",
+      "port": "/focus",
+      "original_routes": [
+        "/focus"
+      ],
+      "port_routes": [
+        "/focus"
+      ],
+      "status": "faithful",
+      "note": "\"Where to look first, ranked by attention\" (renderFocusPage). Pure deterministic projection (focusFor → focusItemsFor + focusGapsFor) over the persisted analyze clusters + typed_relationships + entityScores — no LLM, no new key, no write-path change. Faithful to focus.py _gather_top: the TOP-12 entities by threat score (ORDER BY threat_score DESC; noise + person_candidate excluded), each row = rank · name · role · SEED(=promoted) · score + the deterministic _build_why sentence + cluster chips (clustersFor membership) + the top-3 confidence-sorted typed-rel chips (typedRelationshipsFor). The Gaps section ports compute_gaps' THREE rules EXACTLY over the top-15 actors: (1) uninvestigated — degree 0 OR (enrichment-exists AND never-enriched), merged on the deduped union like the server; (2) uncorroborated — report_count <= 1; (3) unconsolidated — the person_candidate count. The VERBATIM score-methodology block (focus.html:172-191, 'How to read these scores' + the formula + the 5 term bullets + the [SEED] note) renders as a collapsed <details>. Honest empty state pre-Process (the focus.html flow). In ROUTES + expected_port_routes lockstep + an index.html nav link + render() dispatch + the __kipi.focus() harness hook. Gap-chip click → focus the entity on /entities (the ⌘K pendingFocus seam — the original's /entity/{id} link, folded onto /entities like sf-entity-detail). Live-verified by tests/agent/focus.test.ts (ranking + each gap rule fires) + tests/smoke/verify-focus.spec.ts (real Process, offline, zero egress, no key leak — asserts the score-ranked items + the gaps + the methodology block render; honest empty with no analysis); screenshot test-results/kipi-focus.png Read + confirmed faithful. SIGNED DIVERGENCES (architectural, not strips; per parity-and-directives): (a) the elevated/cooling/Δ-vs-last score-DELTA strip (focus.html:19-28, 142-169 + the per-item `status`) is N/A — the client keeps NO focus-run-history snapshot store (focus.py persists a SNAPSHOT_JSON block in vault/focus.md to diff successive runs); this MATCHES the server's own case-scoped status=\"\" branch (app.py:886, deltas only on the all-cases run). (b) the optional LLM Analyst summary (focus.py _summary_via_llm) is OMITTED; the deterministic gap list is the retained analog (the BYO-key client adds no auto-LLM pass to a read page). MICRO-DIVERGENCE: no per-item sub_role pill / sub_role_reason in _build_why (the client EntityRecord has no per-entity sub_role — same ceiling as sf-report-detail) and no cross-case 'appears in cases' line (runs are objectives, not cases). The core ranking + gaps + methodology are NOT signed — they are built 1:1. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-exports",
+      "original": "/exports",
+      "template": "exports.html",
+      "port": "/exports",
+      "original_routes": [
+        "/exports"
+      ],
+      "port_routes": [
+        "/exports"
+      ],
+      "status": "faithful",
+      "note": "Downstream-tool exports — a NEW /exports route generating STIX 2.1 / MISP / 3 CSVs IN-BROWSER as Blob downloads (the existing download() primitive), a verbatim port of investigations/export/intel_exports.py (src/export/intel.ts: buildStixBundle/buildMispEvent/buildEntitiesCsv/buildRelationshipsCsv/buildClustersCsv — the SAME STIX_TYPE_MAP, misp_type_map, CSV columns, MISP role-filter + to_ids rule + event envelope; RFC-4180 quoted CSV). exportModelFor (session.ts) builds the KEY-REDACTED model from the entity DB + analysisFor (relationships/clusters/scores) + correctionMap: the EXPLICIT role (correction > AI overlay, '' when none — the Python entities.notes analog; MISP keeps only operator/channel/ioc) NOT the type-derived display role; cluster description from analysisFor().clusters (clustersFor omits it); noise entities dropped; a relationship whose endpoint isn't in the non-noise set dropped; labels via the redacted store; cluster/rel free-text belted on read. SIGNED divergences (no strip): the 'Branded client report ->' cross-link is sf-report-builder's surface (the NEXT row — a dead /report link now would violate the no-dead-href scar); server file PATHS (investigations/exports/*) are delivery, not capability (the client downloads bytes directly, nothing leaves the browser); entities.csv `id` is a stable 1-based score-sorted index (the SQLite rowid has no client equivalent; STIX uses its own UUIDs). Read-only: NO new write path, NO new vault key, NO migration, NO new retention surface. Live-verified: the intel-export unit test (valid STIX/MISP/CSV from a model + the explicit-role MISP filter + RFC-4180 quoting + the no-leak belt) + verify-exports.spec.ts (real Process -> download each format, parse + assert the entity values + relationship, offline, zero egress, no key leak) + a Read screenshot. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-report-builder",
+      "original": "/report (builder)",
+      "template": "report-builder.html",
+      "port": "/report",
+      "original_routes": [
+        "/report",
+        "/report/render"
+      ],
+      "port_routes": [
+        "/report"
+      ],
+      "status": "faithful",
+      "note": "Branded client report — a NEW /report SPA route folding the original report-builder.html (the branding form) + report.html (/report/render — the print-ready deliverable using window.print(), NOT a server PDF) into ONE route: a builder FORM (client/title/prepared_by/accent/logo-upload/section toggles, print-hidden) + an inline BRANDED render (.report-doc — cover w/ logo+title+Prepared-for+meta Case/Prepared-by/Scope; the selected sections Executive Summary w/ KPI tiles + the synthesis brief, Priority Actors ranked by score w/ role pill + the focus _build_why, Actor Dossiers, IOC table, Cross-Case table, Methodology + source-report table; footer) + a Print/Save-as-PDF window.print() button. reportModelFor (session.ts) builds the KEY-REDACTED model from getBrief(brief:case, frontmatter-stripped) + focusItemsFor (the focus._gather_top + _build_why analog) + dossier:<key> records + the analyst override + IOC-typed entities w/ entityAppearancesFor report counts + listIngestedDocs. XSS closed: brief + dossiers via the EXISTING escape-first renderBriefMarkdown/renderMarkdown; all else textContent; accent hex-validated (^#[0-9a-fA-F]{3,8}$) before a CSS var; logo a data:image/ upload. src/styles/app.css @media print hides the sidebar+form so only .report-doc prints. SIGNED divergences (each w/ analog — no strip): /report/render -> inline-render fold (the established route-fold; original_routes ['/report','/report/render'] owned, port_routes ['/report']); logo = file upload -> data: URL (CSP img-src 'self' data: blocks a remote image — zero-egress; the report is identical, only the INPUT differs); no per-entity sub_role pill (FocusItem has none — same as sf-report-detail); Cross-Case section structurally empty in the single-vault client (entities in >=2 investigations) until sf-cases adds multi-case — renders the honest empty state, functional + empty-by-correctness; dossier notes folded into the dossier_override (the client's analyst-authored body, [[analyst-is-top-authority]]). Read-only: NO new write path/key/migration/retention (in-memory branding only). Live-verified: the report-model unit test (the model + the hex/data-URL validators + the no-leak belt) + verify-report.spec.ts (real Process -> branded render w/ title/client/prepared-by + the brief + a dossier, offline, zero egress, no key leak) + Read screenshots of BOTH the form + the rendered report. [CROSS-CASE UNLOCK (sf-cases shipped): multi-case now exists; the cross-case report section is no longer single-vault-blocked — populating it across cases is a thin follow-up (a raw-vault case:* read), not an architectural impossibility.] · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-set-analyst",
+      "original": "/set-analyst/{name}",
+      "template": "(top-bar control)",
+      "port": "(none)",
+      "original_routes": [
+        "/set-analyst/{}"
+      ],
+      "port_routes": [],
+      "status": "faithful",
+      "note": "analyst-name setter = the Corrections-page 'You (analyst)' input (getAnalyst/setAnalyst), wired to correction authorship + report Prepared-by. The /set-analyst->/activity redirect is a server cookie mechanic with no SPA route (the SPA writes the vault setting + re-renders in place). port_routes [] (a control, not a route). Live-verified on /corrections."
+    },
+    {
+      "id": "sf-schema",
+      "original": "/schema",
+      "template": "schema.html",
+      "port": "(none)",
+      "original_routes": [
+        "/schema"
+      ],
+      "port_routes": [],
+      "status": "out-of-scope",
+      "signoff": "founder 2026-06-18: stays out. Schema is auto-modeled inline during Process (the 2026-06-10 lifecycle decision); no /schema route in the clone.",
+      "note": "schema auto-modeled inline; no analyst schema tab (matches the original's current lifecycle)."
+    },
+    {
+      "id": "sf-cases",
+      "original": "/cases (+/select-case)",
+      "template": "cases.html",
+      "port": "/cases (real multi-case switcher)",
+      "original_routes": [
+        "/cases",
+        "/select-case/{}"
+      ],
+      "port_routes": [
+        "/cases"
+      ],
+      "status": "faithful",
+      "note": "REAL multi-case switcher (founder directive 2026-06-18, parity clause 1 — NO single-vault sign). One vault per user, cases as a key-namespace DIMENSION (docs/17). The isolation is a SINGLE chokepoint: scopedVault(vault, caseId) — a per-case Vault VIEW that scopes every DATA key (run:/brief:/groupbrief:/correction:/analysis:/entity:/dossier:/alert:/report:/pivot: + any future prefix, a CATCH-ALL so none can be missed → no cross-case bleed) and passes GLOBAL keys (secret: = the Anthropic+provider keys, setting: = analyst/worker_url/onboarded/active_case/cases) through per-user. EVERY projection/writer takes vault:Vault, so app.ts passing the scoped view scopes them ALL with ZERO per-call-site edits. The DEFAULT case uses the EXISTING un-prefixed keys (zero migration) + its keys() hides case:* (never sees another case); a named case sees ONLY case:<id>:*. app.ts splits rawVault (real) from the scoped vault; switchCase ABORTS in-flight run/Process + CLEARS lastGraphModel + consolidate/type caches + processJob + the live graph BEFORE re-scope+render (codex blocker: else case A's in-memory graph renders into B). NEW /cases route (renderCasesPage: list + New-case form + click-to-select) + the static 'Local vault' chip → the active case name + a switcher. createCase id = an OPAQUE crypto.randomUUID() (NEVER name-derived — a slug would embed a secret in the raw key; codex), setting:cases stores only the redacted+capped name. SIGNED: /select-case/{} → click-to-select on /cases (route-fold); case DELETE = the OPFS Vault has no bulk-delete primitive (create+select built; delete N/A); per-user keys SHARED across cases BY DESIGN (docs/17 one-vault model). Live-verified: cases-session.test.ts (5 — per-case isolation A/B never bleed, secret:/setting: shared, default backward-compat, pivot: scopes, opaque-id + redacted-name) + verify-cases.spec.ts (create a 2nd case, switch, /entities content DIFFERS, key survives, no leak/egress) + Read screenshots of /cases + the isolated /entities. codex PRD review caught the in-memory bleed + the id-leak + the pivot: prefix (all fixed); impl review clean. · Off-nav (chat-led Workspace, founder 2026-06-20): reachable by hash, not in the sidebar; surface remains faithful."
+    },
+    {
+      "id": "sf-simple",
+      "original": "/simple",
+      "template": "simple.html",
+      "port": "(none)",
+      "original_routes": [
+        "/simple"
+      ],
+      "port_routes": [],
+      "status": "out-of-scope",
+      "signoff": "founder 2026-06-18: out. The no-JS minimal fallback view is not applicable to a JS-required client SPA.",
+      "note": "no-JS fallback; out-of-scope for the client app by founder decision."
+    },
+    {
+      "id": "sf-account",
+      "original": "(kipi-web addition)",
+      "template": "(client account/auth)",
+      "port": "/account",
+      "original_routes": [],
+      "port_routes": [
+        "/account"
+      ],
+      "status": "faithful",
+      "note": "client-only: auth + Anthropic key vault + recovery. The server app had no per-user account; no original equivalent."
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "cap-ocr",
+      "capability": "Scanned-image/PDF OCR",
+      "port": "src/ingest/ocr.ts + scripts/copy-ocr-assets.mjs",
+      "status": "faithful",
+      "note": "multilingual OCR (eng+ara+fas+heb+rus+chi_sim+chi_tra) — a superset of the original's six (+chi_tra per founder directive). Each language's traineddata is vendored SAME-ORIGIN under /tesseract/ at build (copy-ocr-assets.mjs, version-pinned, missing-source-fails-build); a '+'-joined worker loads any requested set from langPath (zero-CDN, never jsdelivr) with an eng-fallback on worker-init failure. Live-verified: ocr.spec.ts OCRs a Persian/Arabic scan to the exact glyphs (>=1 Arabic codepoint U+0600-06FF) via the __kipi.ocrText hook, ara+fas models loaded from /tesseract/ same-origin, zero egress, no key leak; png/jpg/tiff/webp/bmp/gif + scanned-PDF render; screenshot test-results/kipi-ocr-nonlatin.png. PDF page rendering for the OCR fallback is now done by MuPDF.js (see cap-pdf-extract), not pdf.js — tesseract itself unchanged."
+    },
+    {
+      "id": "cap-pdf-extract",
+      "capability": "PDF text extraction (engine + defanged-IOC recovery)",
+      "port": "src/ingest/files.ts (MuPDF.js, text + OCR-page render) + src/ingest/extract.ts (un-defang + flexible TLDs)",
+      "status": "faithful",
+      "note": "The client now extracts PDFs with MuPDF.js (mupdf) — Artifex's WASM build of the SAME C engine the server's PyMuPDF wraps — replacing pdf.js, whose getTextContent fragment-join mangled text and dropped IOCs (FIFA report_id=6: 7 entities vs PyMuPDF's 12). text() = toStructuredText('preserve-whitespace').asText() === get_text('text'); renderPNG() = toPixmap(...).asPNG() feeds the unchanged tesseract OCR fallback (cap-ocr). WASM bundled same-origin by Vite (zero-CDN), explicit destroy() lifecycle. PLUS (founder 2026-06-22) un-defang + whitelist-free domains in BOTH extractor.py and extract.ts: defanged report domains (worldcup2026-tickets[.]com, hxxp://) are recovered and any TLD lands (file-ext denylist guard only) — FIFA admitted domains 4 -> 39. ENFORCED by behavioral_gates[cap-pdf-extract] = pdf_text_diff: the REAL mupdf package (node) + the real extractor/admission yield the IDENTICAL admitted entity set as PyMuPDF and >=39 FIFA domains. Verified: vitest 845, leakgate, ingestion + ocr smokes green."
+    },
+    {
+      "id": "cap-consolidate",
+      "capability": "consolidate (LLM dedup + role)",
+      "port": "session.ts consolidateEntities + entity/consolidate.ts",
+      "status": "faithful",
+      "note": "faithful port of consolidate.py: the system prompt, the role allowlist (operator/channel/ioc/source/infra/noise), opaque-id presentation, union-find merge parse + conflicting-role drop, and the 80-entity batch bound all match (diffed 2026-06-19). DIVERGENCE (founder-signed 2026-06-19): the client applies merges/roles as NON-destructive overlays (rec.roles via applyAnalysis) instead of the server's destructive DB merge — the deliberate spine/analyst-authority design so an analyst correction always wins over an AI merge. Runs as Process step 2; verified live (verify-process.spec). A1 (2026-06-22): the prompt now FEEDS the per-case schema (role definitions + sub_roles + domain/summary, port of consolidate.py:_build_system) + the canonical role DESCRIPTIONS — the first port shipped only role NAMES, so domains defaulted to infra (the squares-not-circles strip). sub_role persisted + overlaid (display). ENFORCED by behavioral_gates[cap-consolidate] = fifa_model_diff role/shape (the REAL graphModelForCase renders FIFA operator spoofs as ellipses, IDENTICAL to the original). SIGNED DIVERGENCE (sp-f0d43a6a, founder 2026-06-23, controlled vocabulary): the ORIGINAL consolidate.py uses the per-case schema's role NAMES as the OUTPUT vocabulary (understand.role_names(schema), so a schema-driven case stores free-text roles like promoter/registrant); the CLIENT uses the schema roles only as bucketing GUIDANCE and keeps a FIXED 6-role canonical OUTPUT taxonomy (operator/channel/ioc/source/infra/noise). Deliberate, not a strip: the canonical 6 are load-bearing for node SHAPE (cy-adapter SHAPE_BY_ROLE), node COLOR, the D4 high-impact confidence gate (HIGH_IMPACT_ROLES), MISP export (intel.ts MISP_ROLES), and the squares-not-circles keystone. Schema roles are NOT ignored: they steer which canonical bucket each entity lands in, and the fine-grained label survives as the operator sub_role (a 'promoter' becomes operator + sub_role:promoter). Widening to free-text output roles would unwind all five downstream systems for no analyst-visible gain. Enforced deterministically by tests/entity/consolidate.test.ts ('controlled-vocabulary role taxonomy'): a schema free-text role threads into the prompt as guidance, but a model response emitting it is dropped and the canonical output set holds. Signoff: q-system/output/plans/role-vocab-controlled-signoff-2026-06-23.md."
+    },
+    {
+      "id": "cap-entity-typing",
+      "capability": "per-case entity typing (re-bucket) pass",
+      "port": "session.ts typeEntities + entity/consolidate.ts + analysis.ts",
+      "status": "faithful",
+      "note": "FAITHFUL (PRD-B pdb-typing-case-type; RCA discipline-evaporation): case_type re-bucketing RESTORED end-to-end — buildTypingPrompt feeds the per-case schema (domain/summary/entity_types) and asks for a case_type per entity (port of typing.py _retype_system/_retype_prompt); parseTyping extracts caseType; the Process typing step persists it (AnalysisRecord.caseTypes) and applyAnalysis OVERLAYS it onto EntityRecord.caseType — so the analytic re-bucketing is APPLIED, not just emitted. The surface-type refinement (SURFACE_TYPES allowlist + id-validated parser) is unchanged. depth metric typing-case-type green (depth_metric_gate.py). Tested: consolidate.test (prompt feeds vocab + parser keeps a case_type-only entry, with negatives) + analysis.test (caseTypes overlays the record). extract_missing remains a signed client-N/A divergence (cap-typing-recover)."
+    },
+    {
+      "id": "cap-understand-schema",
+      "capability": "Understand/schema auto-model",
+      "port": "session.ts autoModelSchema + analysis.ts validateCaseSchema",
+      "status": "faithful",
+      "note": "faithful port of understand.py (diffed 2026-06-19): the schema-proposal prompt + persona, the CaseSchema shape (entityTypes/roles-with-weights/subRoles/noiseNotes), and _validate (guarantees a noise role + >=1 actor role + clamped 0-5 weights) all match. Auto-inline (no /schema gate) is the founder decision (2026-06-10); runs as Process step 1. The corpus budget matches the server (60k chars; codex S2 — no sampling divergence)."
+    },
+    {
+      "id": "cap-process-pipeline",
+      "capability": "Process pipeline (orchestrated chain + progress)",
+      "port": "session.ts PROCESS_STEPS + runProcess",
+      "status": "faithful",
+      "note": "FAITHFUL (PRD-B complete; RCA discipline-evaporation): the 10-step chain (schema->consolidate->typing->correlate->cross_domain->analyze->score->graph_metrics->synthesize->dossiers) runs end-to-end with a live progress UI, and every depth-thinned step is RESTORED. analyze: token cap 16384 + rel cap 150 (hard-capped post-gate) + per-entity evidence fed (pdb-analyze-depth). typing: case_type re-bucketing persisted + applied (pdb-typing-case-type). graph_metrics: compute_path_confidence ported AND wired into the step (per-node pathConfidence persisted + rendered) + eigenvector maxIterations=500 (pdb-metrics-depth + this issue). synthesize: 14+ sections + 8192-token brief + per-finding evidence fed (pdb-synthesize-depth). All 11 depth metrics green under KIPI_DEPTH_COMPLETION=1 (behavioral_depth_audit.py). Re-flipped from partial; the blocking consistency gate enforces it. reextract/retro_clean remain signed client-N/A (cap-reextract/cap-retro-clean)."
+    },
+    {
+      "id": "cap-reextract",
+      "capability": "reextract (re-run extraction)",
+      "port": "(client-N/A: write-time admission gate)",
+      "status": "out-of-scope",
+      "signoff": "founder 2026-06-19: the client extracts + gates entities at WRITE time (the admission gate, INC-1) and discards report text (zero-retention) — there is nothing to re-extract. No client equivalent by design.",
+      "note": "server Process step 1; client divergence — write-time extraction replaces it."
+    },
+    {
+      "id": "cap-retro-clean",
+      "capability": "retro_clean (re-sweep ingested data)",
+      "port": "(client-N/A: write-time admission gate)",
+      "status": "out-of-scope",
+      "signoff": "founder 2026-06-19: the client's write-time admission gate (INC-1) cleans at ingest; a retroactive re-sweep over stored data has no client equivalent (zero-retention discards the source text). Same rationale as cap-reextract.",
+      "note": "server Process step 2; client divergence — write-time admission gate replaces it."
+    },
+    {
+      "id": "cap-typing-recover",
+      "capability": "typing extract_missing (recover regex-missed entities)",
+      "port": "(client-N/A: report text discarded)",
+      "status": "out-of-scope",
+      "signoff": "founder 2026-06-19: extract_missing re-reads each report's TEXT to recover schema-typed entities the regex missed, but the client discards report text after write-time extraction (zero-retention, confidential-investigation tool) — re-reading isn't possible by design. The re-type half of typing is faithful (cap-entity-typing). Same rationale as cap-reextract/cap-retro-clean.",
+      "note": "server typing.py extract_missing; client divergence — no retained text to re-read."
+    },
+    {
+      "id": "cap-chat-step-trail",
+      "capability": "chat live step-trail streaming",
+      "port": "stepRow + displayTrail",
+      "status": "faithful",
+      "note": "the dock streams the live trail into #trail; each tool step shows name + INPUT + RESULT (reuses displayTrail, the same safe formatter as the /runs trail). Live-verified: '🔧 dns_lookup domain=example.com ok → 3 entities: ip:93.184.216.34...', streamed before the delayed final turn."
+    },
+    {
+      "id": "cap-chat-cost-footer",
+      "capability": "chat cost footer ($x . Ys . N steps)",
+      "port": "(steps + time only, no $)",
+      "status": "out-of-scope",
+      "signoff": "founder 2026-06-19: do NOT show cost. Same posture as cap-enrich-cost — the client is BYO-key, the provider/Anthropic bills the user directly, nothing reaches the founder, so there is no founder-side $-metering by design (no-data-retention). The chat turn may still show steps + time (non-$ signals); the $ footer is dropped.",
+      "note": "client/server divergence; $-metering dropped by founder decision, consistent with cap-enrich-cost."
+    },
+    {
+      "id": "cap-chat-findings-card",
+      "capability": "chat findings/runs card",
+      "port": "showRunsCard",
+      "status": "faithful",
+      "note": "a 'runs'/'findings' command folds the run's findings into a .runs-card in the thread (RUN TRAIL: 1 finding · example.com · 1 promoted). Live-verified. · remove-cards (founder 2026-07-03): node/edge detail surfaces are now chat-thread messages/cards (renderNodeCard), not graph-drawer cards; the findings content is unchanged."
+    },
+    {
+      "id": "cap-favicons",
+      "capability": "node favicons on graph",
+      "port": "(plain nodes)",
+      "status": "out-of-scope",
+      "signoff": "founder 2026-06-18: accept plain nodes (shape + color only, no favicons). Preserves the zero-egress posture; no /api/favicon proxy and no client favicon fetches.",
+      "note": "plain nodes by deliberate decision; the original's favicon proxy would mean client egress to arbitrary domains."
+    },
+    {
+      "id": "cap-cluster-colors",
+      "capability": "graph cluster-color fills",
+      "port": "real analytic clusters (INC-3)",
+      "status": "faithful",
+      "note": "Real LLM analytic clusters + cy-adapter fills (NOT the rejected co-occurrence approximation), live-verified. DEPTH RESTORED (PRD-B pdb-analyze-depth, RCA discipline-evaporation): the analyze call now runs at the original floors — ANALYZE_MAX_TOKENS 16384 (was 4096), ANALYZE_MAX_RELATIONSHIPS 150 (was 80) hard-capped on the apply path, and per-entity RETAINED evidence text (the agent's finding claims, the zero-retention analog of analyze.py's profile dossiers) is fed to the model, not just id/label/type/role. Re-flipped from partial; depth metrics analyze-max-tokens/analyze-max-rels/analyze-evidence-feed green (depth_metric_gate.py). The consistency gate (test_kipi_web_parity.py) enforces this row cannot be faithful while any of those metrics is below floor."
+    },
+    {
+      "id": "cap-user-proxy",
+      "capability": "keyed-enrich user-proxy tier",
+      "port": "(client side pending)",
+      "status": "faithful",
+      "note": "proxy-aware client BUILT: osint/proxy.ts (isValidWorkerUrl + proxyFetch sends NO provider key + PROXIED_PROVIDERS VT/GreyNoise/SecurityTrails/AbuseIPDB/Pulsedive/Hunter) + session saveWorkerUrl/getWorkerUrl/enrichViaProxy + pages renderUserProxySection + CSP *.workers.dev (index.html + vercel.json) + docs/cloudflare-worker-template.js. DOCUMENTED DIVERGENCE (not a strip): the user/founder DEPLOYS their own Cloudflare Worker (the one human step; the founder is never in the request path — *.workers.dev is the user's own platform). Deploy founder-authorized 2026-06-18. Live-verified by proxy.spec.ts + a Read screenshot."
+    },
+    {
+      "id": "cap-ai-dossier",
+      "capability": "AI dossier + semantic typed relations",
+      "port": "session.ts",
+      "status": "faithful",
+      "note": "on-demand, key-redacted, in drawer + entities"
+    },
+    {
+      "id": "cap-agent-loop",
+      "capability": "agent loop + brief + grounded Q&A",
+      "port": "agent/*",
+      "status": "faithful",
+      "note": "FAITHFUL (PRD-B pdb-agent-depth; RCA discipline-evaporation): the dig DEPTH is RESTORED. (1) agent-completeness-stop: loop.ts has a COVERAGE stop (port of investigator.py _coverage_met) — it nudges the agent to keep digging while it has a discovered target it neither worked NOR reported, bounded by a nudge budget + a plateau guard so it never loops. (2) agent-browser-forensics: page_navigate / network_requests / evaluate_script render a JS scam page through the user's Worker (renderViaProxy → the new docs/cloudflare-worker-template.js /render endpoint, Cloudflare Browser Rendering) to reach the payout wallet / script.js host / kit fingerprint — the founder's Worker-proxy decision (2026-06-23), one human deploy step. (3) agent-tool-belt-count: 10→20 executable DISPATCH tools (the 3 browser tools + keyless reverse_dns + the 6 CORS-blocked providers routed through the user's Worker). Browser/proxied results are infra:false (T2 leads the gate corroborates, never auto-promoted). depth metrics agent-completeness-stop/agent-browser-forensics/agent-tool-belt-count green (depth_metric_gate.py). Re-flipped from partial; the live-threat synthesis + promotion gate + tradecraft conductor that already HELD are unchanged."
+    },
+    {
+      "id": "cap-cmdk-search",
+      "capability": "global Cmd-K search",
+      "port": "kk-search",
+      "status": "faithful",
+      "note": "global ⌘K/Ctrl-K opens + autofocuses the modal -> searches the SAVED client entity DB (label/value/type) -> result rows -> click navigates to /entities and focuses (expands) the chosen entity. Live-verified."
+    },
+    {
+      "id": "cap-enrich-cost",
+      "capability": "enrich $-cost metering (stats $-spent + per-run cost column)",
+      "port": "(none — client doesn't meter)",
+      "status": "out-of-scope",
+      "signoff": "founder 2026-06-18: drop $-cost metering on the client. The original server metered cost because IT made the provider API calls; the client is BYO-key and calls providers DIRECT from the browser, so the provider bills the user and nothing reaches the founder — there is no founder-side metering by design (same no-data-retention posture as the rest of the app). The /enrich stats header shows run count + entities-enriched instead; the Recent-runs table has no cost column.",
+      "note": "client/server architecture divergence; everything else on /enrich is built 1:1 (sf-enrich faithful)."
+    },
+    {
+      "id": "cap-lifecycle-rail",
+      "capability": "Persistent investigation lifecycle rail",
+      "port": "src/lifecycle.ts + app.ts renderLifecycleRail + index.html #lifecycle-rail",
+      "status": "faithful",
+      "note": "Port of investigations/webapp/app.py::_lifecycle_state + the _lifecycle_rail.html partial. A persistent top-strip rail shows the 4 stages Intake->Investigate->Deliver->Portfolio (the Understand stage was removed 2026-06-10; schema auto-models in Process), each with a per-case done flag (teal/check) computed from the key-safe session projections (liveReportCount / listRuns+promoted / listBriefs / crossRunEntities), the stage owning the active route marked current, and each chip navigating to its route. Re-renders via highlightNav on every render() (nav + every mutation). kipi-web has one active case, so the Python all/multi-case null branch is N/A (rail always shows for a loaded vault). Live-verified by lifecycle.spec.ts (offline scripted run, no key leak, no egress)."
+    },
+    {
+      "id": "cap-home-start-here",
+      "capability": "Home empty-case Start-here hero",
+      "port": "src/app.ts renderGraphPane (#cy-empty.start-here) + focusInvestigator",
+      "status": "faithful",
+      "note": "UX enhancement (brief §1/X-5; divergence from the original empty-graph home, founder 'do all' 2026-06-20). On an empty case the #cy-empty overlay is a Start-here hero: heading + 3 numbered step buttons (1 Add evidence + 2 Process -> /reports, 3 Investigate -> focus the Investigator #chat-input, opening the dock if collapsed). Driven by the existing hydrateCaseGraph show/hide (visible iff no finding/lead node), so it fades to the graph the moment data exists. Live-verified by start-here.spec.ts (offline, no network)."
+    },
+    {
+      "id": "cap-enrich-entity-first",
+      "capability": "Enrich entity-first path",
+      "port": "src/pages.ts renderEntityEnrich + Configure-providers details",
+      "status": "faithful",
+      "note": "UX enhancement (brief §18 P0/P1; divergence from the original per-provider-card-only enrich, founder 'do all' 2026-06-20). /enrich leads with an entity-first action: pick an entity (datalist of the case's entities) or type a target, infer its type (ip/wallet/domain), and 'Run all applicable providers' runs every CONFIGURED provider whose targets include that type (reusing d.enrich), showing a per-provider result summary. The per-provider key-cards collapse into a 'Configure providers' <details> (open on a 0-key vault, collapsed once any key is saved). Live-verified by enrich-entity-first.spec.ts + verify-enrich.spec.ts (offline, zero egress, no key leak)."
+    },
+    {
+      "id": "cap-entity-row-menu",
+      "capability": "Per-row entity action menu",
+      "port": "src/pages.ts entityRowMenu + app.ts openInGraph/enrichEntity seams",
+      "status": "faithful",
+      "note": "UX enhancement (brief §Entities #4; founder 'do all' 2026-06-20). Each /entities row has a ⋯ menu: Open in graph (navigate home + focus the entity's node by label after hydrate), Enrich (navigate /enrich with the entity prefilled in the entity-first input), Override role (expand the fold + scroll to its override form). DOM popover, outside-click/Escape dismiss, stopPropagation so it doesn't toggle the row. Live-verified by entity-row-menu.spec.ts (offline scripted run)."
+    },
+    {
+      "id": "cap-argon2id-kdf",
+      "capability": "Argon2id vault KDF + migrate-on-unlock",
+      "port": "src/vault/crypto.ts (hash-wasm argon2id) + src/vault/vault.ts (kdfP/kdfR + migrate)",
+      "status": "faithful",
+      "note": "Security hardening (decisions #2, founder 'do it' 2026-06-20). Wrapping keys derive via memory-hard Argon2id (hash-wasm, WASM inlined SAME-ORIGIN, mem 64MiB/time 3/parallelism 1) instead of PBKDF2-600k. VaultFile carries per-side kdfP/kdfR; a legacy {kdf:{iters}} file is normalized to pbkdf2 on read (no version bump → old vaults still open) and MIGRATED to Argon2id on the next unlock (password side on password-unlock, recovery side on recovery-unlock; payload not re-encrypted, only the wrapping). Verified: vitest round-trip + migration + legacy-open + wrong-pw/phrase-throw (58 vault/crypto tests); the full playwright suite creates/unlocks vaults in Chromium under the CSP (Argon2id compiles under the existing 'unsafe-eval'); no external .wasm fetch."
+    }
+  ],
+  "nav_divergence": {
+    "decision": "Sidebar collapsed to Workspace + Enrich + Account; all other routes resolve off-nav (by hash).",
+    "signoff": "founder 2026-06-20 — chat-led workspace redesign (PRD prd-kipi-web-chat-led-usability); off-nav routes remain faithful surfaces.",
+    "nav_routes": [
+      "/",
+      "/account",
+      "/enrich"
+    ],
+    "off_nav_routes": [
+      "/activity",
+      "/alerts",
+      "/bridges",
+      "/briefs",
+      "/cases",
+      "/clusters",
+      "/corrections",
+      "/cross-case",
+      "/cross-domain",
+      "/deliverables",
+      "/entities",
+      "/exports",
+      "/focus",
+      "/inbox",
+      "/report",
+      "/reports",
+      "/runs"
+    ]
+  }
+}
