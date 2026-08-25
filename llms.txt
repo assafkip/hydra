@@ -1,0 +1,5 @@
+# hydra
+
+> Hydra is a browser-native OSINT platform: no server sees your cases or evidence. Includes an entity graph, structured analytic tradecraft, and a browser-side agent loop. Live at https://hydra.ktlystlabs.com
+
+
